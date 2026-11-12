@@ -3,7 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#0b0820">
+<meta name="theme-color" content="#0b141a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>JK Video Call</title>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
@@ -354,6 +358,24 @@ h2{margin:12px 6px 6px;color:#00a884;letter-spacing:.6px;font-size:12.5px}
 .orb.s{--c1:#4dd0a5;--c2:#00796b}.orb.t{--c1:#f48fb1;--c2:#c2185b}
 .pickme{width:120px;padding:14px 10px}
 .pickme .orb{width:64px;height:64px;font-size:28px}
+.people{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;width:100%;max-width:340px}
+.people .pickme{width:auto;padding:16px 8px 12px;border-radius:22px;background:#202c33}
+.people .pickme b{font-size:17px}
+.av{width:92px;height:92px;border-radius:50%;overflow:hidden;flex:none;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.av svg{width:100%;height:100%;display:block}
+.av.big{width:104px;height:104px}
+.pins{display:flex;gap:14px;margin:6px 0 2px}
+.pins i{width:16px;height:16px;border-radius:50%;border:2px solid #8696a0;transition:.15s}
+.pins i.on{background:#00a884;border-color:#00a884;transform:scale(1.15)}
+.pinmsg{min-height:20px;font-size:13.5px;color:#f15c6d}
+.pinpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;max-width:270px}
+.pinpad button{height:58px;border-radius:16px;font-size:24px;font-weight:600;background:#2a3942;transition:transform .08s,background .15s}
+.pinpad button:active{transform:scale(.93);background:#00a884}
+.pinpad button[data-k="x"]{font-size:14px;color:#8696a0;background:none}
+.pinpad button[data-k="<"]{background:none}
+.nbar{display:flex;align-items:center;gap:10px;margin:8px 4px 2px;padding:10px 12px;border-radius:14px;background:#103629;color:#d9fdd3;font-size:13.5px;line-height:1.35}
+.nbar span{flex:1}
+.nbar .gloss{padding:9px 14px;font-size:13.5px;font-weight:700;flex:none}
 .help ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:14.5px;line-height:1.4}
 .help a{color:#53bdeb;word-break:break-all}
 </style>
@@ -365,14 +387,8 @@ h2{margin:12px 6px 6px;color:#00a884;letter-spacing:.6px;font-size:12.5px}
   <!-- setup -->
   <section class="setup" id="setup">
     <div class="logo">JK Video Call</div>
-    <div class="sub" id="lgSub">Log in with your phone number and PIN</div>
-    <div class="pick" id="profiles"></div>
-    <form class="login" id="lgForm" autocomplete="off">
-      <input class="field" id="lgNum" placeholder="Phone number (4 digits)" inputmode="numeric" maxlength="4">
-      <input class="field" id="lgPin" placeholder="PIN" type="password" inputmode="numeric" maxlength="8">
-      <button class="gloss g-green" id="lgGo" type="submit">Log in</button>
-      <div id="lgMsg"></div>
-    </form>
+    <div class="sub">Who are you? Tap your picture.</div>
+    <div class="people" id="people"></div>
   </section>
 
   <section class="setup reveal hidden" id="reveal">
@@ -397,6 +413,7 @@ h2{margin:12px 6px 6px;color:#00a884;letter-spacing:.6px;font-size:12.5px}
       <button class="gloss g-glass addbtn" id="addContact">+ Add contact</button>
     </section>
     <section class="page" id="pg-chats">
+      <div class="nbar hidden" id="notifBar"></div>
       <h2>Chats</h2>
       <div id="chatList"></div>
     </section>
@@ -551,12 +568,27 @@ function beep(freqs, dur, vol = 0.12, type = 'sine', when = 0) {
 }
 function stopTone() { clearInterval(toneT); toneT = 0; if (navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) navigator.vibrate(0); }
 function ringback() { stopTone(); const r = () => beep([440, 480], 1.6, 0.07); r(); toneT = setInterval(r, 4000); }
+/* one piano-like note: a few harmonics that each fade out, the higher ones faster */
+function piano(freq, when, dur = 1.2, vol = 0.22) {
+  const a = audio(); if (!a) return;
+  const t0 = a.currentTime + when;
+  [[1, 1], [2, 0.45], [3, 0.22], [4, 0.1]].forEach(([h, g]) => {
+    const o = a.createOscillator(), gn = a.createGain();
+    o.type = 'sine'; o.frequency.value = freq * h;
+    gn.gain.setValueAtTime(0, t0); gn.gain.linearRampToValueAtTime(vol * g, t0 + 0.008);
+    gn.gain.exponentialRampToValueAtTime(0.0001, t0 + dur / (1 + (h - 1) * 0.5));
+    o.connect(gn); gn.connect(a.destination); o.start(t0); o.stop(t0 + dur + 0.05);
+  });
+}
+const canBuzz = () => navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive);
 function ringtone() {
   stopTone();
+  const N = { C4: 261.63, E4: 329.63, G4: 392, E5: 659.25, G5: 783.99, A5: 880, C6: 1046.5, D6: 1174.66, E6: 1318.51 };
+  const tune = [['E5', 0], ['G5', 0.2], ['C6', 0.4], ['E6', 0.6], ['D6', 0.95], ['C6', 1.15], ['A5', 1.4], ['C6', 1.6], ['E6', 1.8], ['G5', 2.2]];
   const r = () => {
-    [659, 784, 988, 1319, 988, 784].forEach((f, i) => beep([f, f * 2], 0.16, 0.09, 'triangle', i * 0.17));
-    [659, 784, 988, 1319, 988, 784].forEach((f, i) => beep([f, f * 2], 0.16, 0.09, 'triangle', 1.2 + i * 0.17));
-    if (navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) navigator.vibrate([400, 200, 400]);
+    tune.forEach(([n, at]) => piano(N[n], at));
+    piano(N.C4, 0, 1.9, 0.16); piano(N.G4, 0.6, 1.5, 0.1); piano(N.E4, 1.4, 1.8, 0.14);
+    if (canBuzz()) navigator.vibrate([500, 250, 500, 250, 500]);
   };
   r(); toneT = setInterval(r, 3200);
 }
@@ -572,12 +604,60 @@ async function api(op, extra, creds) {
   const r = await fetch(API_URL, { method: 'POST', body: JSON.stringify(Object.assign({ op, num: c.num, pin: c.pin }, extra || {})) });
   return r.json();
 }
-function renderProfiles() {
-  const ps = gstore.get('profiles', []);
-  $('lgSub').textContent = ps.length ? 'Tap your name, or log in with a phone number and PIN' : 'Log in with your phone number and PIN';
-  $('profiles').innerHTML = ps.map(p => `<button type="button" class="pickme glass" data-p="${esc(p.num)}"><div class="orb ${orbCls(p.name)}">${esc(initial(p.name))}</div><b>${esc(p.name)}</b></button>`).join('');
-  $('profiles').querySelectorAll('[data-p]').forEach(b => b.onclick = () => { const p = ps.find(x => x.num === b.dataset.p); if (p) enter(p, null); });
+const PEOPLE = [
+  { num: '2017', name: 'Jagannath', av: 'boy' },
+  { num: '2019', name: 'Krishna', av: 'girl' },
+  { num: '1988', name: 'Suraj', av: 'man' },
+  { num: '1989', name: 'Tulasi', av: 'woman' }
+];
+/* simple drawn faces: boy, girl, man, woman */
+function avatar(kind) {
+  const skin = '#f1c7a1', hair = '#2a1d16';
+  const face = r => `<circle cx="50" cy="52" r="${r}" fill="${skin}"/>`;
+  const eyes = (y, r) => `<circle cx="41" cy="${y}" r="${r}" fill="#2b2118"/><circle cx="59" cy="${y}" r="${r}" fill="#2b2118"/>`;
+  const smile = y => `<path d="M41 ${y} Q50 ${y + 8} 59 ${y}" fill="none" stroke="#a8553a" stroke-width="2.5" stroke-linecap="round"/>`;
+  const body = c => `<path d="M16 100 Q16 78 50 78 Q84 78 84 100Z" fill="${c}"/>`;
+  const bg = c => `<rect width="100" height="100" fill="${c}"/>`;
+  let s;
+  if (kind === 'boy') s = bg('#4fc3f7') + body('#ff7043') + face(23) + `<path d="M27 49 Q25 26 50 26 Q75 26 73 49 Q66 37 50 38 Q34 37 27 49Z" fill="${hair}"/>` + eyes(55, 3.4) + smile(62);
+  else if (kind === 'girl') s = bg('#f8a5c2') + body('#7e57c2') + `<circle cx="21" cy="52" r="10" fill="${hair}"/><circle cx="79" cy="52" r="10" fill="${hair}"/>` + face(23) + `<path d="M27 51 Q24 26 50 26 Q76 26 73 51 Q64 39 50 39 Q36 39 27 51Z" fill="${hair}"/><path d="M64 28l9-7v14z M64 28l-9-7v14z" fill="#ff4081"/>` + eyes(56, 3.4) + smile(63);
+  else if (kind === 'man') s = bg('#4db6ac') + body('#37474f') + face(26) + `<path d="M24 47 Q21 22 50 22 Q79 22 76 47 Q70 33 50 34 Q30 33 24 47Z" fill="${hair}"/>` + eyes(52, 3) + `<path d="M39 64 Q50 58 61 64 Q50 68 39 64Z" fill="${hair}"/>` + smile(68);
+  else s = bg('#ce93d8') + `<path d="M19 94 Q12 24 50 21 Q88 24 81 94Z" fill="${hair}"/>` + body('#ec407a') + face(25) + `<path d="M25 51 Q23 28 50 28 Q77 28 75 51 Q67 35 47 37 Q34 39 25 51Z" fill="${hair}"/><circle cx="50" cy="41" r="1.9" fill="#d32f2f"/>` + eyes(53, 3) + smile(63);
+  return `<svg viewBox="0 0 100 100" aria-hidden="true">${s}</svg>`;
 }
+function renderPeople() {
+  $('people').innerHTML = PEOPLE.map(p => `<button type="button" class="pickme" data-p="${p.num}"><div class="av">${avatar(p.av)}</div><b>${esc(p.name)}</b></button>`).join('');
+  $('people').querySelectorAll('[data-p]').forEach(b => b.onclick = () => askPin(PEOPLE.find(p => p.num === b.dataset.p)));
+}
+function askPin(p) {
+  let pin = '', busy = false;
+  modal(`<div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+    <div class="av big">${avatar(p.av)}</div><h3>${esc(p.name)}</h3>
+    <div class="note">Enter your 4-digit PIN</div>
+    <div class="pins" id="pinDots"></div><div class="pinmsg" id="pinMsg"></div>
+    <div class="pinpad" id="pinPad">${['1', '2', '3', '4', '5', '6', '7', '8', '9', 'x', '0', '<'].map(k => `<button type="button" data-k="${k}">${k === '<' ? '⌫' : k === 'x' ? 'Cancel' : k}</button>`).join('')}</div></div>`);
+  const draw = () => { $('pinDots').innerHTML = [0, 1, 2, 3].map(i => `<i class="${i < pin.length ? 'on' : ''}"></i>`).join(''); };
+  draw();
+  $('pinPad').onclick = async e => {
+    const b = e.target.closest('[data-k]'); if (!b || busy) return;
+    const k = b.dataset.k;
+    if (k === 'x') return closeModal();
+    if (k === '<') pin = pin.slice(0, -1); else if (pin.length < 4) pin += k;
+    $('pinMsg').textContent = ''; draw(); blip();
+    if (pin.length === 4) {
+      busy = true; $('pinMsg').style.color = '#8696a0'; $('pinMsg').textContent = 'Logging in…';
+      const err = await login(p.num, pin);
+      busy = false;
+      if (err) { pin = ''; if ($('pinDots')) { draw(); $('pinMsg').style.color = ''; $('pinMsg').textContent = err; } }
+      else closeModal();
+    }
+  };
+}
+document.addEventListener('keydown', e => {
+  const pad = $('pinPad'); if (!pad || $('modal').classList.contains('hidden')) return;
+  const k = /^\d$/.test(e.key) ? e.key : e.key === 'Backspace' ? '<' : e.key === 'Escape' ? 'x' : null;
+  if (k) { const b = pad.querySelector('[data-k="' + k + '"]'); if (b) b.click(); }
+});
 /* open the app as this person: their own saved data on this browser, then whatever is saved online */
 function enter(p, remote) {
   UK = SK + 'u' + p.num + '_';
@@ -590,21 +670,14 @@ function enter(p, remote) {
   showMain();
   if (remote) { applyRemote(remote); cloudAt = Date.now(); } else cloudLoad();
 }
-async function login() {
-  const num = $('lgNum').value.trim(), pin = $('lgPin').value.trim(), msg = $('lgMsg');
-  if (!/^\d{4}$/.test(num) || !pin) { msg.textContent = 'Type your 4-digit number and your PIN'; return; }
-  msg.style.color = '#8696a0'; msg.textContent = 'Logging in…'; $('lgGo').disabled = true;
+async function login(num, pin) {   // returns '' when it worked, or a message to show
   try {
     const r = await api('load', null, { num, pin });
-    msg.style.color = '';
-    if (!r.ok) { msg.textContent = r.error === 'login' ? 'Wrong number or PIN' : 'Could not log in (' + r.error + ')'; return; }
-    msg.textContent = ''; $('lgNum').value = ''; $('lgPin').value = '';
+    if (!r.ok) return r.error === 'login' ? 'Wrong PIN. Try again.' : 'Could not log in (' + r.error + ')';
     enter({ num, name: r.name, pin }, r);
-  } catch (e) { msg.style.color = ''; msg.textContent = 'Cannot reach the server. Check the internet and try again.'; }
-  finally { $('lgGo').disabled = false; }
+    return '';
+  } catch (e) { return 'Cannot reach the server. Check the internet.'; }
 }
-$('lgForm').onsubmit = e => { e.preventDefault(); login(); };
-$('lgNum').oninput = () => { $('lgNum').value = $('lgNum').value.replace(/\D/g, '').slice(0, 4); };
 function logout() {
   if (call) return toast('End the call first');
   gstore.set('session', null);
@@ -613,6 +686,7 @@ function logout() {
 }
 /* merge what the server has into what this browser has (nothing is thrown away) */
 function applyRemote(r) {
+  if (r.vk) me.vk = r.vk;
   if (r.dir) for (const n in r.dir) if (n !== me.num) {
     const c = contacts.find(x => x.num === n);
     if (c) c.name = r.dir[n]; else contacts.push({ id: 'c' + n, name: r.dir[n], num: n });
@@ -675,7 +749,7 @@ function showMain() {
   $('meName').textContent = me.name; $('myNum').textContent = me.num;
   const o = $('meOrb'); o.textContent = initial(me.name); o.className = 'orb ' + orbCls(me.name);
   renderContacts(); renderRecents(); renderSlots(); renderChats(); updateBadge();
-  startPeer();
+  startPeer(); renderNotifBar(); pushSubscribe();
 }
 
 /* ---------- tabs ---------- */
@@ -825,7 +899,7 @@ function renderChats() {
   el.querySelectorAll('[data-open]').forEach(b => b.onclick = () => openThread(b.dataset.open));
 }
 function openThread(num) {
-  threadNum = num; const ch = chatOf(num); ch.unread = 0; saveChats();
+  threadNum = num; const ch = chatOf(num); ch.unread = 0; saveChats(); clearNotif('jk-msg-' + num);
   const name = chatName(num);
   $('thName').textContent = name; updatePresence();
   const o = $('thOrb'); o.textContent = initial(name); o.className = 'orb ' + orbCls(name);
@@ -927,6 +1001,7 @@ function receiveMsg(num, sentName, id0, text, c) {
     if (!seeing) {
       ch.unread = (ch.unread || 0) + 1;
       toast('💬 ' + chatName(num) + ': ' + String(text || '').slice(0, 60), 3000);
+      if (document.hidden) notify('💬 ' + chatName(num), { body: String(text || '').slice(0, 120), tag: 'jk-msg-' + num, renotify: true, vibrate: [200, 100, 200], data: { kind: 'msg', from: num } });
     }
     pop(); saveChats();
     if (threadNum === num) renderThread();
@@ -950,7 +1025,7 @@ const cloudTried = new Set();
 async function cloudSend(num, m) {
   if (cloudTried.has(m.id)) return; cloudTried.add(m.id);
   try {
-    const r = await api('send', { to: num, msg: { id: m.id, text: m.text, ts: m.ts } });
+    const r = await api('send', { to: num, msg: { id: m.id, text: m.text, ts: m.ts }, jwts: await vapidJwts(), k: VAPID_PUB });
     if (r.ok && m.st === 'pending') { m.st = 'cloud'; saveChats(); if (threadNum === num) renderThread(); }
   } catch (e) { cloudTried.delete(m.id); }
 }
@@ -983,6 +1058,99 @@ function onChatData(c, d) {
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden && threadNum) { const ch = chats[threadNum]; if (ch && ch.unread) { ch.unread = 0; saveChats(); } sendRead(threadNum); }
 });
+
+/* ---------- notifications ---------- */
+const VAPID_PUB = 'BGnZyu0CO_6_pQf9-3sV0oPKAW3p08UJU-FyGkpaSIJ78qdR2OXMX3iuVoCAYW17yY6U2HyzbkA_VAd4FOQy5Sk';
+const b64uToBytes = s => { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return Uint8Array.from(atob(s), c => c.charCodeAt(0)); };
+const bytesToB64u = b => btoa(String.fromCharCode.apply(null, b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+const standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+const canSW = 'serviceWorker' in navigator && !inFrame() && (location.protocol === 'https:' || LOCAL);
+let swReg = null;
+if (canSW) {
+  navigator.serviceWorker.register('sw.js').then(r => { swReg = r; renderNotifBar(); pushSubscribe(); }).catch(() => {});
+  navigator.serviceWorker.addEventListener('message', e => {
+    const d = e.data || {};
+    if (d.t === 'accept') { if (call && call.dir === 'in' && !call.accepted) accept(); }
+    else if (d.t === 'decline') { if (call && call.dir === 'in' && !call.live) decline(); }
+    else if (d.t === 'open') { if (d.kind === 'msg' && d.from && me && !call) openThread(String(d.from)); }
+    else if (d.t === 'push') cloudPoll();
+  });
+}
+const notifOn = () => canSW && 'Notification' in window && Notification.permission === 'granted';
+async function notify(title, opts) {
+  if (!swReg || !notifOn()) return;
+  try { await swReg.showNotification(title, Object.assign({ icon: 'icon-192.png', badge: 'icon-192.png' }, opts)); } catch (e) {}
+}
+async function clearNotif(tag) {
+  if (!swReg) return;
+  try { (await swReg.getNotifications({ tag })).forEach(n => n.close()); } catch (e) {}
+}
+function renderNotifBar() {
+  const b = $('notifBar'); if (!b) return;
+  let mode = '';
+  if (me && isIOS && !standalone && !('Notification' in window)) mode = 'ios';
+  else if (me && canSW && 'Notification' in window && Notification.permission === 'default') mode = 'ask';
+  b.classList.toggle('hidden', !mode);
+  if (mode === 'ios') b.innerHTML = '<span>🔔 For call notifications on iPhone: tap Share, choose <b>Add to Home Screen</b>, then open the app from that icon.</span>';
+  else if (mode === 'ask') {
+    b.innerHTML = '<span>🔔 Turn on notifications so calls and messages reach you when the app is closed.</span><button class="gloss g-green" id="nbOn">Turn on</button>';
+    $('nbOn').onclick = enableNotifs;
+  }
+}
+async function enableNotifs() {
+  let p = 'denied';
+  try { p = await Notification.requestPermission(); } catch (e) {}
+  renderNotifBar();
+  if (p !== 'granted') return toast('Notifications are blocked. Allow them in the browser settings for this site.', 4500);
+  await pushSubscribe();
+  toast('Notifications are on');
+}
+/* register this device so the backend can wake it for calls and messages */
+async function pushSubscribe() {
+  if (!swReg || !me || !notifOn() || !('PushManager' in window)) return;
+  try {
+    let sub = await swReg.pushManager.getSubscription();
+    if (!sub) sub = await swReg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(VAPID_PUB) });
+    if (store.get('pushSent', '') !== sub.endpoint) { const r = await api('sub', { endpoint: sub.endpoint }); if (r.ok) store.set('pushSent', sub.endpoint); }
+  } catch (e) {}
+}
+/* signed tokens that let the backend send a push on our behalf, one per push service */
+let vapidKey = null;
+async function vapidJwts() {
+  if (!me || !me.vk || !window.crypto || !crypto.subtle) return null;
+  try {
+    if (!vapidKey) {
+      const pub = b64uToBytes(VAPID_PUB);
+      vapidKey = await crypto.subtle.importKey('jwk', { kty: 'EC', crv: 'P-256', x: bytesToB64u(pub.slice(1, 33)), y: bytesToB64u(pub.slice(33, 65)), d: me.vk, ext: true }, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+    }
+    const enc = o => bytesToB64u(new TextEncoder().encode(JSON.stringify(o))), out = {};
+    for (const aud of ['https://fcm.googleapis.com', 'https://updates.push.services.mozilla.com', 'https://web.push.apple.com']) {
+      const data = enc({ typ: 'JWT', alg: 'ES256' }) + '.' + enc({ aud, exp: Math.floor(Date.now() / 1000) + 3600, sub: HOME_URL });
+      const sig = new Uint8Array(await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, vapidKey, new TextEncoder().encode(data)));
+      out[aud] = data + '.' + bytesToB64u(sig);
+    }
+    return out;
+  } catch (e) { return null; }
+}
+/* the person we are calling does not have the app open: wake their phone and keep trying to reach them */
+function wakeCall() {
+  if (!call || call.dir !== 'out' || call.live) return;
+  if (!call.woke) {
+    call.woke = true; cState('Ringing their phone…');
+    const c0 = call;
+    vapidJwts().then(jwts => api('ring', { to: c0.num, video: !!c0.video, jwts, k: VAPID_PUB })).then(r => {
+      if (call === c0 && !c0.live && !(c0.conn && c0.conn.open)) cState(r && r.pushed ? 'Ringing their phone…' : 'Calling… their app is closed');
+    }).catch(() => {});
+  }
+  clearTimeout(call.retryT);
+  call.retryT = setTimeout(() => {
+    if (!call || call.dir !== 'out' || call.live || (call.conn && call.conn.open) || !peerReady) { if (call && call.dir === 'out' && !call.live && !peerReady) wakeCall(); return; }
+    const c = peer.connect(PREFIX + call.num, { reliable: true, metadata: { name: me.name, num: me.num } });
+    call.conn = c; wireConn(c);
+    c.on('open', () => { if (call && call.conn === c) { c.send({ t: 'ring', name: me.name, num: me.num, video: call.video }); cState('Ringing…'); } });
+  }, 3000);
+}
 
 /* ---------- settings ---------- */
 $('myNumBtn').onclick = () => {
@@ -1037,7 +1205,7 @@ function startPeer() {
     if (p !== peer) return;
     const t = e && e.type;
     if (t === 'peer-unavailable') {
-      if (call && call.dir === 'out' && !call.live && String(e.message || '').includes(PREFIX + call.num)) finish(call.name + " isn't online right now", 'unreached');
+      if (call && call.dir === 'out' && !call.live && String(e.message || '').includes(PREFIX + call.num)) wakeCall();
       return;
     }
     if (t === 'unavailable-id') {
@@ -1217,13 +1385,14 @@ async function dial(num, video) {
   const c = peer.connect(PREFIX + num, { reliable: true, metadata: { name: me.name, num: me.num } });
   call.conn = c; wireConn(c);
   c.on('open', () => { if (call && call.conn === c) { c.send({ t: 'ring', name: me.name, num: me.num, video: call.video }); cState('Ringing…'); } });
-  call.noAnswer = setTimeout(() => { if (call && !call.live) finish('No answer', 'missed', true); }, 45000);
-  call.reachT = setTimeout(() => { if (call && call.dir === 'out' && !(call.conn && call.conn.open)) finish(call.name + " isn't online right now", 'unreached'); }, 15000);
+  call.noAnswer = setTimeout(() => { if (call && !call.live) finish('No answer', 'missed', true); }, 60000);
+  call.reachT = setTimeout(() => { if (call && call.dir === 'out' && !(call.conn && call.conn.open)) wakeCall(); }, 8000);
 }
 
 function wireConn(c) {
   c.on('data', d => onData(c, d));
-  c.on('close', () => { if (call && call.conn === c) finish('Call ended', call.live ? 'ok' : 'missed'); });
+  c.on('open', () => { c._opened = true; });
+  c.on('close', () => { if (call && call.conn === c && (c._opened || c.open || call.dir === 'in')) finish('Call ended', call.live ? 'ok' : 'missed'); });
   c.on('error', () => {});
 }
 
@@ -1239,6 +1408,10 @@ function onData(c, d) {
     openCallUI('incoming');
     cState('Incoming ' + (call.video ? 'video' : 'audio') + ' call' + (saved ? '' : ' · not in contacts'));
     ringtone(); flashTitle(true);
+    if (document.hidden) notify('📞 ' + call.name + ' is calling', {
+      body: (call.video ? 'Video' : 'Voice') + ' call. Tap Accept to answer.', tag: 'jk-call', renotify: true, requireInteraction: true,
+      vibrate: [600, 300, 600, 300, 600, 300, 600], actions: [{ action: 'accept', title: 'Accept' }, { action: 'decline', title: 'Decline' }], data: { kind: 'call', from: num }
+    });
     call.noAnswer = setTimeout(() => { if (call && !call.live && call.dir === 'in') finish('Missed call', 'missed', true); }, 45000);
     return;
   }
@@ -1260,7 +1433,7 @@ function onData(c, d) {
 
 async function accept() {
   if (!call || call.dir !== 'in') return;
-  stopTone(); flashTitle(false); clearTimeout(call.noAnswer);
+  stopTone(); flashTitle(false); clearTimeout(call.noAnswer); clearNotif('jk-call');
   cState('Starting ' + (call.video ? 'camera' : 'microphone') + '…');
   try { local = await getMedia(call.video); }
   catch (e) { finish('Could not answer', 'missed', true); return showMediaHelp(e); }
@@ -1323,7 +1496,7 @@ function finish(reason, result, notify) {
   if (!call) return;
   const c = call; call = null;
   if (notify) { try { if (c.conn && c.conn.open) c.conn.send({ t: 'end' }); } catch (e) {} }
-  clearTimeout(c.noAnswer); clearTimeout(c.reachT); clearTimeout(c.connT); clearInterval(c.timer);
+  clearTimeout(c.noAnswer); clearTimeout(c.reachT); clearTimeout(c.retryT); clearNotif('jk-call'); clearTimeout(c.connT); clearInterval(c.timer);
   stopTone(); flashTitle(false);
   const dur = c.live ? (Date.now() - c.start) / 1000 : 0;
   setTimeout(() => { try { c.mc && c.mc.close(); } catch (e) {} try { c.conn && c.conn.close(); } catch (e) {} }, 400);
@@ -1359,9 +1532,9 @@ function flashTitle(on) {
 window.addEventListener('beforeunload', () => { if (call) send({ t: 'end' }); });
 
 /* ---------- boot ---------- */
-renderProfiles();
+renderPeople();
 const sess = gstore.get('session', null), sessP = sess && gstore.get('profiles', []).find(p => p.num === sess);
-if (sessP) enter(sessP, null);
+if (sessP) { enter(sessP, null); const cq = qs.get('chat'); if (cq && /^\d{4}$/.test(cq)) openThread(cq); }
 })();
 </script>
 </body>
