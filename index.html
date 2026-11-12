@@ -345,6 +345,15 @@ h2{margin:12px 6px 6px;color:#00a884;letter-spacing:.6px;font-size:12.5px}
 .ringwrap i{border-color:rgba(0,168,132,.6)}
 .chip.q{background:rgba(0,0,0,.45);border-color:var(--edge);color:#e9edef}
 .tab[data-pg=chats]{order:1}.tab[data-pg=recents]{order:2}.tab[data-pg=keypad]{order:3}.tab[data-pg=contacts]{order:4}
+.login{display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px}
+.login .field{border-radius:16px;text-align:center;font-size:19px;letter-spacing:4px;padding:14px}
+.login .field::placeholder{letter-spacing:0;font-size:15px}
+.login .gloss{padding:14px;font-weight:700;font-size:16px}
+.login .gloss:disabled{opacity:.5}
+#lgMsg{min-height:20px;color:#f15c6d;font-size:13.5px}
+.orb.s{--c1:#4dd0a5;--c2:#00796b}.orb.t{--c1:#f48fb1;--c2:#c2185b}
+.pickme{width:120px;padding:14px 10px}
+.pickme .orb{width:64px;height:64px;font-size:28px}
 .help ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:14.5px;line-height:1.4}
 .help a{color:#53bdeb;word-break:break-all}
 </style>
@@ -356,15 +365,14 @@ h2{margin:12px 6px 6px;color:#00a884;letter-spacing:.6px;font-size:12.5px}
   <!-- setup -->
   <section class="setup" id="setup">
     <div class="logo">JK Video Call</div>
-    <div class="sub">Who is using this phone?</div>
-    <div class="pick">
-      <button class="pickme glass" data-name="Jagannath"><div class="orb j">J</div><b>Jagannath</b></button>
-      <button class="pickme glass" data-name="Krishna"><div class="orb k">K</div><b>Krishna</b></button>
-    </div>
-    <div class="other">
-      <input class="field" id="otherName" placeholder="Someone else? Type a name" maxlength="20">
-      <button class="gloss g-vio" id="otherGo">Go</button>
-    </div>
+    <div class="sub" id="lgSub">Log in with your phone number and PIN</div>
+    <div class="pick" id="profiles"></div>
+    <form class="login" id="lgForm" autocomplete="off">
+      <input class="field" id="lgNum" placeholder="Phone number (4 digits)" inputmode="numeric" maxlength="4">
+      <input class="field" id="lgPin" placeholder="PIN" type="password" inputmode="numeric" maxlength="8">
+      <button class="gloss g-green" id="lgGo" type="submit">Log in</button>
+      <div id="lgMsg"></div>
+    </form>
   </section>
 
   <section class="setup reveal hidden" id="reveal">
@@ -466,7 +474,12 @@ const $ = id => document.getElementById(id);
 const PREFIX = 'jkglossycall-v1-';
 const qs = new URLSearchParams(location.search);
 const SK = 'jkcall_' + (qs.get('profile') || 'main') + '_';
+let UK = SK;   // becomes SK + 'u<number>_' once someone logs in, so each person has their own data
 const store = {
+  get(k, d) { try { const v = localStorage.getItem(UK + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(UK + k, JSON.stringify(v)); } catch (e) {} cloudDirty(); }
+};
+const gstore = {   // shared by everyone on this browser: who is logged in, and who has logged in before
   get(k, d) { try { const v = localStorage.getItem(SK + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem(SK + k, JSON.stringify(v)); } catch (e) {} }
 };
@@ -501,10 +514,10 @@ const I = {
 };
 
 /* ---------- state ---------- */
-let me = store.get('me', null);            // {name, num}
-let contacts = store.get('contacts', []);   // [{id,name,num}]
-let recents = store.get('recents', []);
-let chats = store.get('chats', {});         // {num: {name, unread, msgs:[{id,me,text,ts,st}]}}
+let me = null;                             // {name, num, pin} once logged in
+let contacts = [];                          // [{id,name,num}]
+let recents = [];
+let chats = {};         // {num: {name, unread, msgs:[{id,me,text,ts,st}]}}
 let threadNum = null;                       // chat open on screen
 const links = {};                           // num -> chat DataConnection
 let peer = null, peerReady = false, retryT = 0;
@@ -514,7 +527,7 @@ let typed = '';
 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const initial = n => (n || '?').trim().charAt(0).toUpperCase() || '?';
-const orbCls = n => { const l = (n || '').toLowerCase(); return l.startsWith('krish') ? 'k' : l.startsWith('jagan') ? 'j' : 'x'; };
+const orbCls = n => { const l = (n || '').toLowerCase(); return l.startsWith('krish') ? 'k' : l.startsWith('jagan') ? 'j' : l.startsWith('s') ? 's' : l.startsWith('t') ? 't' : 'x'; };
 const rand4 = () => String(1000 + Math.floor(Math.random() * 9000));
 const nameFor = num => (contacts.find(c => c.num === num) || {}).name || ('Number ' + num);
 
@@ -550,24 +563,111 @@ function ringtone() {
 const blip = () => beep([880], 0.06, 0.05);
 const endTone = () => { beep([480, 620], 0.25, 0.08); beep([480, 620], 0.25, 0.08, 'sine', 0.35); };
 
-/* ---------- setup ---------- */
-function choose(name) {
-  name = name.trim().slice(0, 20); if (!name) return;
-  me = { name, num: rand4() }; store.set('me', me);
-  const l = name.toLowerCase();
-  const partner = l.startsWith('jagan') ? 'Krishna' : l.startsWith('krish') ? 'Jagannath' : null;
-  if (partner && !contacts.some(c => c.name.toLowerCase() === partner.toLowerCase())) {
-    contacts.unshift({ id: Date.now(), name: partner, num: '' }); store.set('contacts', contacts);
-  }
-  $('setup').classList.add('hidden');
-  $('revName').textContent = name; $('revNum').textContent = me.num;
-  $('reveal').classList.remove('hidden');
-  beep([523, 659, 784], 0.5, 0.06, 'triangle');
+/* ---------- login and online storage ---------- */
+const LOCAL = ['localhost', '127.0.0.1'].includes(location.hostname);
+// The Apps Script backend keeps each person's contacts, chats and call history.
+const API_URL = (LOCAL && qs.get('api')) || 'https://script.google.com/macros/s/AKfycbyGO3qxiGOBa5Q2RTZ4jGA64BHosfiwHQUwX8_Dk468RVXhDYa6iPVic6eZFjx5cY0/exec';
+async function api(op, extra, creds) {
+  const c = creds || me;
+  const r = await fetch(API_URL, { method: 'POST', body: JSON.stringify(Object.assign({ op, num: c.num, pin: c.pin }, extra || {})) });
+  return r.json();
 }
-document.querySelectorAll('.pickme').forEach(b => b.onclick = () => choose(b.dataset.name));
-$('otherGo').onclick = () => choose($('otherName').value);
-$('otherName').onkeydown = e => { if (e.key === 'Enter') choose(e.target.value); };
-$('revGo').onclick = () => { $('reveal').classList.add('hidden'); showMain(); };
+function renderProfiles() {
+  const ps = gstore.get('profiles', []);
+  $('lgSub').textContent = ps.length ? 'Tap your name, or log in with a phone number and PIN' : 'Log in with your phone number and PIN';
+  $('profiles').innerHTML = ps.map(p => `<button type="button" class="pickme glass" data-p="${esc(p.num)}"><div class="orb ${orbCls(p.name)}">${esc(initial(p.name))}</div><b>${esc(p.name)}</b></button>`).join('');
+  $('profiles').querySelectorAll('[data-p]').forEach(b => b.onclick = () => { const p = ps.find(x => x.num === b.dataset.p); if (p) enter(p, null); });
+}
+/* open the app as this person: their own saved data on this browser, then whatever is saved online */
+function enter(p, remote) {
+  UK = SK + 'u' + p.num + '_';
+  me = null;   // no cloud saves while loading
+  contacts = store.get('contacts', []); recents = store.get('recents', []); chats = store.get('chats', {});
+  quality = store.get('quality', '8k'); if (!QUALITY[quality]) quality = '8k';
+  me = { num: p.num, name: p.name, pin: p.pin };
+  gstore.set('session', p.num);
+  const ps = gstore.get('profiles', []).filter(x => x.num !== p.num); ps.unshift({ num: p.num, name: p.name, pin: p.pin }); gstore.set('profiles', ps);
+  showMain();
+  if (remote) { applyRemote(remote); cloudAt = Date.now(); } else cloudLoad();
+}
+async function login() {
+  const num = $('lgNum').value.trim(), pin = $('lgPin').value.trim(), msg = $('lgMsg');
+  if (!/^\d{4}$/.test(num) || !pin) { msg.textContent = 'Type your 4-digit number and your PIN'; return; }
+  msg.style.color = '#8696a0'; msg.textContent = 'Logging in…'; $('lgGo').disabled = true;
+  try {
+    const r = await api('load', null, { num, pin });
+    msg.style.color = '';
+    if (!r.ok) { msg.textContent = r.error === 'login' ? 'Wrong number or PIN' : 'Could not log in (' + r.error + ')'; return; }
+    msg.textContent = ''; $('lgNum').value = ''; $('lgPin').value = '';
+    enter({ num, name: r.name, pin }, r);
+  } catch (e) { msg.style.color = ''; msg.textContent = 'Cannot reach the server. Check the internet and try again.'; }
+  finally { $('lgGo').disabled = false; }
+}
+$('lgForm').onsubmit = e => { e.preventDefault(); login(); };
+$('lgNum').oninput = () => { $('lgNum').value = $('lgNum').value.replace(/\D/g, '').slice(0, 4); };
+function logout() {
+  if (call) return toast('End the call first');
+  gstore.set('session', null);
+  try { if (peer) peer.destroy(); } catch (e) {}
+  location.reload();
+}
+/* merge what the server has into what this browser has (nothing is thrown away) */
+function applyRemote(r) {
+  if (r.dir) for (const n in r.dir) if (n !== me.num) {
+    const c = contacts.find(x => x.num === n);
+    if (c) c.name = r.dir[n]; else contacts.push({ id: 'c' + n, name: r.dir[n], num: n });
+  }
+  const s = r.state;
+  if (s) {
+    (s.contacts || []).forEach(c => { if (c && c.num && !contacts.some(x => x.num === c.num)) contacts.push(c); });
+    const sc = s.chats || {};
+    for (const n in sc) {
+      const L = chatOf(n, sc[n].name), byId = new Map(L.msgs.map(m => [m.id, m]));
+      (sc[n].msgs || []).forEach(m => {
+        const l = byId.get(m.id);
+        if (!l) L.msgs.push(m); else if (l.st === 'pending' && m.st !== 'pending') l.st = m.st;
+      });
+      L.msgs.sort((a, b) => a.ts - b.ts);
+    }
+    const seen = new Set(recents.map(x => x.t));
+    (s.recents || []).forEach(x => { if (!seen.has(x.t)) recents.push(x); });
+    recents.sort((a, b) => b.t - a.t); recents = recents.slice(0, 40);
+  }
+  takeInbox(r.inbox);
+  store.set('contacts', contacts); store.set('recents', recents); saveChats();
+  renderContacts(); renderRecents(); renderSlots(); if (threadNum) renderThread();
+}
+function takeInbox(inbox) {
+  if (!inbox || !inbox.length) return false;
+  inbox.forEach(m => receiveMsg(String(m.from), m.name, m.id, m.text, null));
+  return true;
+}
+let cloudT = 0, cloudAt = 0, cloudErr = '';
+function cloudDirty() { if (!me) return; clearTimeout(cloudT); cloudT = setTimeout(() => cloudSave(), 4000); }
+function cloudState() {
+  const c = {};
+  for (const n in chats) c[n] = { name: chats[n].name, unread: 0, msgs: chats[n].msgs.slice(-100) };
+  return { contacts, chats: c, recents: recents.slice(0, 40), quality, ts: Date.now() };
+}
+async function cloudSave() {
+  if (!me) return; clearTimeout(cloudT);
+  try { const r = await api('save', { state: cloudState() }); if (r.ok) { cloudAt = Date.now(); cloudErr = ''; } else cloudErr = r.error; }
+  catch (e) { cloudErr = 'no internet'; cloudT = setTimeout(() => cloudSave(), 30000); }
+}
+async function cloudLoad() {
+  if (!me) return;
+  try { const r = await api('load'); if (r.ok) { applyRemote(r); cloudAt = Date.now(); cloudErr = ''; } else cloudErr = r.error; }
+  catch (e) { cloudErr = 'no internet'; }
+}
+async function cloudPoll() {
+  if (!me || document.hidden) return;
+  try { const r = await api('poll'); if (r.ok && takeInbox(r.inbox)) saveChats(); } catch (e) {}
+}
+setInterval(cloudPoll, 120000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) cloudPoll(); });
+function cloudNote() {
+  return cloudErr ? 'Not saved online yet (' + cloudErr + ')' : cloudAt ? 'Chats saved online at ' + new Date(cloudAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : 'Saving online…';
+}
 
 function showMain() {
   ['top', 'pages', 'tabs'].forEach(id => $(id).classList.remove('hidden'));
@@ -757,7 +857,7 @@ function renderThread(jump) {
         <div class="ct"><b>${esc(title.charAt(0).toUpperCase() + title.slice(1))}</b><span>${missed ? 'Tap to call back' : fmtDur(k.dur)}</span></div><small>${t}</small></div>`;
       return;
     }
-    const tick = m.me ? (m.st === 'pending' ? '<b title="Waiting to send">🕓</b>' : `<b class="${m.st === 'read' ? 'read' : ''}" title="${m.st === 'read' ? 'Seen' : 'Delivered'}">✓✓</b>`) : '';
+    const tick = m.me ? (m.st === 'pending' ? '<b title="Waiting to send">🕓</b>' : m.st === 'cloud' ? '<b title="Sent. It arrives when they open the app" style="letter-spacing:0">✓</b>' : `<b class="${m.st === 'read' ? 'read' : ''}" title="${m.st === 'read' ? 'Seen' : 'Delivered'}">✓✓</b>`) : '';
     h += `<div class="bub ${m.me ? 'mine' : 'them'} ${onlyEmoji(m.text) ? 'big' : ''}">${esc(m.text)}<small>${t}${tick}</small></div>`;
   });
   if (ch.msgs.some(m => m.me && m.st === 'pending')) h += `<div class="pendnote">Will send when ${esc(chatName(threadNum))} opens the app</div>`;
@@ -783,7 +883,7 @@ function sendMsg(num, text) {
   const m = { id: me.num + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), me: true, text, ts: Date.now(), st: 'pending' };
   chatOf(num).msgs.push(m); saveChats(); renderThread(true);
   beep([700], 0.05, 0.04);
-  flush(num);
+  flush(num); setTimeout(pump, 6500);
 }
 /* open (or reuse) a data link to a number for chat */
 function link(num) {
@@ -792,7 +892,7 @@ function link(num) {
   if (!peerReady || !/^\d{4}$/.test(num) || num === me.num) return null;
   const c = peer.connect(PREFIX + num, { reliable: true, metadata: { kind: 'chat', name: me.name, num: me.num } });
   c._connecting = true; links[num] = c; wireConn(c);
-  c.on('open', () => { c._connecting = false; flush(num); if (threadNum === num) sendRead(num); updatePresence(); });
+  c.on('open', () => { c._connecting = false; linkUp(num); if (threadNum === num) sendRead(num); updatePresence(); });
   const drop = () => { c._connecting = false; if (links[num] === c) delete links[num]; updatePresence(); };
   c.on('close', drop); c.on('error', drop);
   setTimeout(() => { if (links[num] === c && !c.open) { drop(); try { c.close(); } catch (e) {} } }, 12000);
@@ -800,7 +900,7 @@ function link(num) {
 }
 function adoptLink(c) {
   const num = peerNum(c);
-  c.on('open', () => { if (!links[num] || !links[num].open) links[num] = c; flush(num); updatePresence(); });
+  c.on('open', () => { if (!links[num] || !links[num].open) links[num] = c; linkUp(num); updatePresence(); });
   c.on('close', () => { if (links[num] === c) delete links[num]; updatePresence(); });
 }
 function flush(num) {
@@ -812,35 +912,71 @@ function flush(num) {
 function sendRead(num) {
   const c = links[num]; if (c && c.open) { try { c.send({ t: 'read', num: me.num }); } catch (e) {} }
 }
-setInterval(() => { if (peerReady) for (const n in chats) if (chats[n].msgs.some(m => m.me && m.st === 'pending')) flush(n); }, 8000);
 const pop = () => { beep([880, 1320], 0.09, 0.05, 'sine'); beep([1175, 1760], 0.12, 0.05, 'sine', 0.1); };
+/* a message arrived, either straight from the other phone (c) or from the online inbox (c = null) */
+const ackQ = {};
+function receiveMsg(num, sentName, id0, text, c) {
+  if (!/^\d{4}$/.test(num)) return null;
+  const saved = resolveContact(num, sentName);
+  const ch = chatOf(num, saved ? saved.name : String(sentName || num).slice(0, 20));
+  if (!saved && sentName) ch.name = String(sentName).slice(0, 20);
+  const id = String(id0 || '').slice(0, 48);
+  if (!ch.msgs.some(m => m.id === id)) {
+    ch.msgs.push({ id, me: false, text: String(text || '').slice(0, 2000), ts: Date.now(), st: 'in' });
+    const seeing = threadNum === num && !document.hidden;
+    if (!seeing) {
+      ch.unread = (ch.unread || 0) + 1;
+      toast('💬 ' + chatName(num) + ': ' + String(text || '').slice(0, 60), 3000);
+    }
+    pop(); saveChats();
+    if (threadNum === num) renderThread();
+    if (seeing) setTimeout(() => sendRead(num), 300);
+  }
+  if (!c) { (ackQ[num] = ackQ[num] || []).push(id); link(num); flushAcks(num); }
+  return id;
+}
+function flushAcks(num) {
+  const q = ackQ[num], c = links[num];
+  if (q && q.length && c && c.open) { q.forEach(id => { try { c.send({ t: 'ack', id }); } catch (e) {} }); ackQ[num] = []; }
+}
+/* the direct link to a number just opened */
+function linkUp(num) {
+  flush(num); flushAcks(num);
+  const c = links[num], ch = chats[num];
+  if (c && c.open && !c._nudged && ch && ch.msgs.some(m => m.me && m.st === 'cloud')) { c._nudged = true; try { c.send({ t: 'nudge' }); } catch (e) {} }
+}
+/* a message that could not be handed over directly goes to the other person's online inbox */
+const cloudTried = new Set();
+async function cloudSend(num, m) {
+  if (cloudTried.has(m.id)) return; cloudTried.add(m.id);
+  try {
+    const r = await api('send', { to: num, msg: { id: m.id, text: m.text, ts: m.ts } });
+    if (r.ok && m.st === 'pending') { m.st = 'cloud'; saveChats(); if (threadNum === num) renderThread(); }
+  } catch (e) { cloudTried.delete(m.id); }
+}
+function pump() {
+  if (!me) return;
+  for (const n in chats) {
+    const pend = chats[n].msgs.filter(m => m.me && m.st === 'pending' && !m.call);
+    if (!pend.length) continue;
+    if (peerReady) flush(n);
+    const c = links[n];
+    if (!(c && c.open)) pend.forEach(m => { if (Date.now() - m.ts > 6000) cloudSend(n, m); });
+  }
+}
+setInterval(pump, 8000);
 function onChatData(c, d) {
   const from = peerNum(c);
   if (d.t === 'msg') {
-    const num = from;
-    if (!/^\d{4}$/.test(num)) return;
-    const saved = resolveContact(num, d.name);
-    const ch = chatOf(num, saved ? saved.name : String(d.name || num).slice(0, 20));
-    if (!saved && d.name) ch.name = String(d.name).slice(0, 20);
-    const id = String(d.id || '').slice(0, 48);
-    if (!ch.msgs.some(m => m.id === id)) {
-      ch.msgs.push({ id, me: false, text: String(d.text || '').slice(0, 2000), ts: Date.now(), st: 'in' });
-      const seeing = threadNum === num && !document.hidden;
-      if (!seeing) {
-        ch.unread = (ch.unread || 0) + 1;
-        toast('💬 ' + chatName(num) + ': ' + String(d.text || '').slice(0, 60), 3000);
-      }
-      pop(); saveChats();
-      if (threadNum === num) renderThread();
-      if (seeing) setTimeout(() => sendRead(num), 300);
-    }
-    if (!links[num] || !links[num].open) links[num] = c;
+    const id = receiveMsg(from, d.name, d.id, d.text, c);
+    if (id == null) return;
+    if (!links[from] || !links[from].open) links[from] = c;
     try { c.send({ t: 'ack', id }); } catch (e) {}
     return;
   }
   const ch = chats[from]; if (!ch) return;
   let changed = false;
-  if (d.t === 'ack') ch.msgs.forEach(m => { if (m.me && m.id === d.id && m.st === 'pending') { m.st = 'sent'; changed = true; } });
+  if (d.t === 'ack') ch.msgs.forEach(m => { if (m.me && m.id === d.id && (m.st === 'pending' || m.st === 'cloud')) { m.st = 'sent'; changed = true; } });
   if (d.t === 'read') ch.msgs.forEach(m => { if (m.me && m.st !== 'read') { m.st = 'read'; changed = true; } });
   if (changed) { saveChats(); if (threadNum === from) renderThread(); }
 }
@@ -856,13 +992,12 @@ $('myNumBtn').onclick = () => {
 };
 $('settingsBtn').onclick = () => {
   modal(`<h3>Settings</h3>
-    <div class="note">This phone: <b>${esc(me.name)}</b> · number <b style="letter-spacing:2px">${me.num}</b></div>
-    <input class="field" id="stName" value="${esc(me.name)}" maxlength="20" placeholder="Your name">
-    <button class="gloss g-blue" style="padding:13px" id="stSave">Save name</button>
+    <div class="note">Logged in as <b>${esc(me.name)}</b> · number <b style="letter-spacing:2px">${me.num}</b></div>
+    <div class="note" id="stCloud">${esc(cloudNote())}</div>
     <div class="note" style="margin-top:4px">Video quality (highest your camera and internet allow)</div>
     <div class="seg" id="stQual">${Object.keys(QUALITY).map(k => `<button data-q="${k}" class="${k === quality ? 'on' : ''}">${QUALITY[k].label}</button>`).join('')}</div>
-    <button class="plain" id="stNew">🎲 Get a new random number</button>
-    <button class="plain danger" id="stReset">Start over (pick who is using this phone)</button>
+    <button class="plain" id="stSync">☁️ Save and check for messages now</button>
+    <button class="plain danger" id="stOut">Log out</button>
     <button class="gloss g-glass" style="padding:12px" id="stClose">Close</button>`);
   $('stClose').onclick = closeModal;
   $('stQual').onclick = e => {
@@ -871,17 +1006,11 @@ $('settingsBtn').onclick = () => {
     $('stQual').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
     toast('Video quality: up to ' + QUALITY[quality].label);
   };
-  $('stSave').onclick = () => { const n = $('stName').value.trim(); if (!n) return; me.name = n.slice(0, 20); store.set('me', me); closeModal(); showMain(); toast('Name saved'); };
-  $('stNew').onclick = () => {
-    if (!confirm('Get a new number? People who saved your old number (' + me.num + ') will need the new one.')) return;
-    me.num = rand4(); store.set('me', me); closeModal(); restartPeer(); $('myNum').textContent = me.num; toast('Your new number is ' + me.num, 4000);
+  $('stSync').onclick = async () => {
+    $('stCloud').textContent = 'Saving…'; await cloudSave(); await cloudPoll();
+    if ($('stCloud')) $('stCloud').textContent = cloudNote();
   };
-  $('stReset').onclick = () => {
-    if (!confirm('Start over? Your number and contacts on this phone will be cleared.')) return;
-    if (peer) peer.destroy(); peer = null;
-    ['me', 'contacts', 'recents', 'chats'].forEach(k => { try { localStorage.removeItem(SK + k); } catch (e) {} });
-    location.reload();
-  };
+  $('stOut').onclick = logout;
 };
 
 /* ---------- network (PeerJS) ---------- */
@@ -1100,6 +1229,7 @@ function wireConn(c) {
 
 function onData(c, d) {
   if (!d || typeof d !== 'object') return;
+  if (d.t === 'nudge') return cloudPoll();
   if (d.t === 'msg' || d.t === 'ack' || d.t === 'read') return onChatData(c, d);
   if (d.t === 'ring') {
     if (call) { try { c.send({ t: 'busy' }); } catch (e) {} setTimeout(() => c.close(), 800); return; }
@@ -1229,7 +1359,9 @@ function flashTitle(on) {
 window.addEventListener('beforeunload', () => { if (call) send({ t: 'end' }); });
 
 /* ---------- boot ---------- */
-if (me && /^\d{4}$/.test(me.num)) showMain();
+renderProfiles();
+const sess = gstore.get('session', null), sessP = sess && gstore.get('profiles', []).find(p => p.num === sess);
+if (sessP) enter(sessP, null);
 })();
 </script>
 </body>
