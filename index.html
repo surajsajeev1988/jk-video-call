@@ -363,9 +363,71 @@ h2{margin:12px 6px 6px;color:#00a884;letter-spacing:.6px;font-size:12.5px}
 .people{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;width:100%;max-width:340px}
 .people .pickme{width:auto;padding:16px 8px 12px;border-radius:22px;background:#202c33}
 .people .pickme b{font-size:17px}
+.addme .av{display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.07);border:2px dashed var(--edge,rgba(255,255,255,.35));box-shadow:none}
+.addme .av span{font-size:46px;line-height:1;font-weight:300;opacity:.75}
+.avpick{display:flex;gap:10px;justify-content:center;margin:2px 0 4px}
+.avpick button{width:62px;height:62px;border-radius:50%;overflow:hidden;padding:0;opacity:.45;border:3px solid transparent;transition:.15s}
+.avpick button.on{opacity:1;border-color:#00a884;transform:scale(1.06)}
+.avpick svg{width:100%;height:100%;display:block}
 .av{width:92px;height:92px;border-radius:50%;overflow:hidden;flex:none;box-shadow:0 4px 14px rgba(0,0,0,.4)}
 .av svg{width:100%;height:100%;display:block}
 .av.big{width:104px;height:104px}
+.quote{border-left:3px solid currentColor;padding:3px 8px;margin:0 0 4px;border-radius:7px;background:rgba(0,0,0,.2);display:block;max-width:100%;cursor:pointer}
+.quote b{display:block;font-size:12px;opacity:.95}
+.quote span{display:block;font-size:13px;opacity:.78;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.replybar{display:flex;align-items:center;gap:8px;padding:4px 12px 0}
+.replybar .quote{flex:1;margin:0}
+.replybar button{background:none;font-size:18px;padding:4px 8px;color:inherit}
+.recbar{display:flex;align-items:center;gap:10px;padding:10px 12px calc(env(safe-area-inset-bottom) + 12px)}
+.recbar b{flex:1;font-size:14px}
+.recbar .gloss{padding:10px 20px;border-radius:999px}
+.recbar .plain{padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.08)}
+.recdot{width:12px;height:12px;border-radius:50%;background:#ff3b30;animation:recblink 1s infinite;flex:none}
+@keyframes recblink{50%{opacity:.2}}
+.bub.media{padding:6px 7px}
+.vn{display:flex;align-items:center;gap:8px;min-width:172px;padding:2px}
+.vnb{width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.28);font-size:13px;flex:none;color:inherit;display:grid;place-items:center}
+.vn.on .vnb{background:#00a884;color:#fff}
+.vnw{flex:1;display:flex;align-items:center;gap:3px;height:22px}
+.vnw i{flex:1;background:currentColor;opacity:.45;border-radius:2px;height:38%}
+.vnw i:nth-child(2n){height:72%}
+.vnw i:nth-child(3n){height:96%}
+.vn.on .vnw i{animation:vnbounce .85s infinite alternate}
+@keyframes vnbounce{to{transform:scaleY(.35)}}
+.vn em{font-style:normal;font-size:12px;opacity:.75}
+.vn.gone{opacity:.6;font-size:13px;min-width:0}
+.ph{display:block;max-width:230px;width:100%;border-radius:12px;cursor:pointer}
+.bub .cap{display:block;margin-top:4px}
+.rxrow{display:flex;gap:4px;margin-top:4px}
+.rxrow span{background:rgba(0,0,0,.3);border-radius:999px;padding:1px 7px;font-size:13px;line-height:1.55}
+.rxrow i{font-style:normal;font-size:11px;margin-left:3px;opacity:.85}
+.rxpick{display:flex;justify-content:space-between;gap:6px;margin:4px 0}
+.rxpick button{font-size:25px;padding:6px 0;border-radius:14px;background:rgba(255,255,255,.08);flex:1}
+.rxpick button.on{background:#00a884}
+.composer .sm{font-size:19px}
+.gpick{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:6px 0}
+.gp{display:flex;align-items:center;gap:8px;padding:8px;border-radius:14px;background:rgba(255,255,255,.07);opacity:.42;text-align:left}
+.gp.on{opacity:1;background:rgba(0,168,132,.3)}
+.gp .orb{width:34px;height:34px;font-size:15px;flex:none}
+.gp b{flex:1;font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.gp i{font-style:normal;font-size:11px;opacity:.7}
+.famrow{display:flex;justify-content:center;margin:0 0 10px}
+.fambtn{display:flex;align-items:center;gap:8px;padding:11px 20px;border-radius:999px;font-weight:600}
+.gcall{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;color:#fff;
+  background:var(--t-callbg,radial-gradient(80% 60% at 50% 20%,#1d5a7a,transparent 70%),linear-gradient(170deg,#0f2027,#06141a))}
+.ghead{padding:calc(env(safe-area-inset-top) + 14px) 16px 6px;text-align:center}
+.ghead b{display:block;font-size:19px}
+.ghead span{font-size:13px;opacity:.85}
+.ggrid{flex:1;display:grid;gap:6px;padding:8px;grid-template-columns:repeat(2,1fr);align-content:center;overflow:auto}
+.ggrid.n1,.ggrid.n2{grid-template-columns:1fr}
+.gtile{position:relative;border-radius:18px;overflow:hidden;background:rgba(0,0,0,.4);min-height:118px;display:grid;place-items:center}
+.gtile video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
+.gtile .orb{width:62px;height:62px;font-size:26px;position:relative;z-index:1}
+.gtile.out{opacity:.45}
+.glbl{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:6px 9px;background:linear-gradient(transparent,rgba(0,0,0,.65));font-size:12px;display:flex;gap:6px;align-items:baseline}
+.glbl b{font-size:13px}
+.glbl span{opacity:.85}
+.gcall .controls{position:relative;padding:10px 16px calc(env(safe-area-inset-bottom) + 14px)}
 .pins{display:flex;gap:14px;margin:6px 0 2px}
 .pins i{width:16px;height:16px;border-radius:50%;border:2px solid #8696a0;transition:.15s}
 .pins i.on{background:#00a884;border-color:#00a884;transform:scale(1.15)}
@@ -733,6 +795,7 @@ body.tv-nature{--ink:#1d3524;--dim:#54734f;--faint:#86a37c;--edge:rgba(90,150,80
     <section class="page" id="pg-chats">
       <div class="nbar hidden" id="notifBar"></div>
       <h2>Chats</h2>
+      <div class="famrow"><button class="gloss g-green fambtn" id="familyBtn">👨‍👩‍👧‍👦 Family call</button></div>
       <div id="chatList"></div>
     </section>
     <section class="page hidden" id="pg-keypad">
@@ -791,11 +854,23 @@ body.tv-nature{--ink:#1d3524;--dim:#54734f;--faint:#86a37c;--edge:rgba(90,150,80
     </header>
     <div class="msgs" id="msgs"></div>
     <div class="quick" id="quick"></div>
+    <div class="replybar hidden" id="replyBar"></div>
+    <div class="recbar hidden" id="recBar"></div>
     <form class="composer glass" id="composer" autocomplete="off">
+      <button type="button" class="send sm gloss g-glass" id="photoBtn" title="Send a picture">🖼️</button>
+      <button type="button" class="send sm gloss g-glass" id="micBtn" title="Record a voice message">🎤</button>
       <input class="field" id="msgIn" placeholder="Type a message" maxlength="2000" enterkeyhint="send">
       <button class="send gloss g-blue" id="sendBtn" type="submit" title="Send"></button>
     </form>
+    <input type="file" id="photoIn" accept="image/*" class="hidden">
   </div>
+</div>
+
+<!-- family call -->
+<div class="gcall hidden" id="gcall">
+  <div class="ghead"><b id="gTitle">Family call</b><span id="gState">Ringing…</span></div>
+  <div class="ggrid" id="gGrid"></div>
+  <div class="controls" id="gCtl"></div>
 </div>
 
 <div class="modal hidden" id="modal"><div class="sheet glass" id="sheet"></div></div>
@@ -922,12 +997,15 @@ async function api(op, extra, creds) {
   const r = await fetch(API_URL, { method: 'POST', body: JSON.stringify(Object.assign({ op, num: c.num, pin: c.pin }, extra || {})) });
   return r.json();
 }
-const PEOPLE = [
+const BASE_PEOPLE = [
   { num: '2017', name: 'Jagannath', av: 'boy' },
   { num: '2019', name: 'Krishna', av: 'girl' },
   { num: '1988', name: 'Suraj', av: 'man' },
   { num: '1989', name: 'Tulasi', av: 'woman' }
 ];
+const AV_KINDS = ['boy', 'girl', 'man', 'woman'];
+// everyone who can sign in: the four built-in accounts plus any added later (kept on the server)
+let PEOPLE = BASE_PEOPLE.concat((gstore.get('extra', []) || []).filter(p => p && /^\d{4}$/.test(p.num) && !BASE_PEOPLE.some(b => b.num === p.num)));
 /* simple drawn faces: boy, girl, man, woman */
 function avatar(kind) {
   const skin = '#f1c7a1', hair = '#2a1d16';
@@ -944,8 +1022,75 @@ function avatar(kind) {
   return `<svg viewBox="0 0 100 100" aria-hidden="true">${s}</svg>`;
 }
 function renderPeople() {
-  $('people').innerHTML = PEOPLE.map(p => `<button type="button" class="pickme" data-p="${p.num}"><div class="av">${avatar(p.av)}</div><b>${esc(p.name)}</b></button>`).join('');
+  $('people').innerHTML = PEOPLE.map(p => `<button type="button" class="pickme" data-p="${p.num}"><div class="av">${avatar(p.av)}</div><b>${esc(p.name)}</b></button>`).join('')
+    + '<button type="button" class="pickme addme" id="addPerson"><div class="av"><span>+</span></div><b>Add account</b></button>';
   $('people').querySelectorAll('[data-p]').forEach(b => b.onclick = () => askPin(PEOPLE.find(p => p.num === b.dataset.p)));
+  $('addPerson').onclick = openAddAccount;
+}
+/* keep the picker in step with the server, so a phone shows accounts added on another phone */
+function rememberPeople() {
+  gstore.set('extra', PEOPLE.filter(x => !BASE_PEOPLE.some(b => b.num === x.num)));
+}
+const cleanPerson = p => ({ num: String(p.num), name: String(p.name || p.num).slice(0, 14), av: AV_KINDS.includes(p.av) ? p.av : 'man' });
+async function loadPeople() {
+  try {
+    const r = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ op: 'people' }) }).then(x => x.json());
+    if (!r || !r.ok || !Array.isArray(r.people) || !r.people.length) return;
+    const list = r.people.filter(p => p && /^\d{4}$/.test(String(p.num))).map(cleanPerson);
+    PEOPLE = BASE_PEOPLE.map(b => list.find(p => p.num === b.num) || b)
+      .concat(list.filter(p => !BASE_PEOPLE.some(b => b.num === p.num)));
+    rememberPeople();
+    if (!me) renderPeople();
+  } catch (e) {}
+}
+function addPerson(p) {
+  if (!PEOPLE.some(x => x.num === p.num)) PEOPLE.push(p);
+  rememberPeople(); renderPeople();
+}
+/* a new person: a face, a name and a 4-digit number. That number is the PIN as well. */
+function openAddAccount() {
+  let av = 'boy', busy = false;
+  modal(`<h3>➕ Add account</h3>
+    <div class="note">Pick a picture and a name, then choose a 4-digit number. That number is how the family call you, and it is your PIN too.</div>
+    <div class="avpick" id="apAv">${AV_KINDS.map(k => `<button type="button" data-av="${k}" class="${k === av ? 'on' : ''}">${avatar(k)}</button>`).join('')}</div>
+    <input class="field" id="apName" placeholder="Name" maxlength="14" autocomplete="off">
+    <input class="field" id="apNum" placeholder="4-digit number" inputmode="numeric" maxlength="4" autocomplete="off" style="letter-spacing:4px;font-size:20px;text-align:center">
+    <div class="pinmsg" id="apMsg"></div>
+    <div class="row"><button class="gloss g-glass" id="apCancel">Cancel</button><button class="gloss g-green" id="apSave">Create</button></div>`);
+  const msg = s => { const el = $('apMsg'); if (el) el.textContent = s; };
+  $('apAv').onclick = e => {
+    const b = e.target.closest('[data-av]'); if (!b) return;
+    av = b.dataset.av;
+    $('apAv').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+    blip();
+  };
+  const num = $('apNum'); num.oninput = () => num.value = num.value.replace(/\D/g, '').slice(0, 4);
+  $('apCancel').onclick = closeModal;
+  $('apSave').onclick = async () => {
+    if (busy) return;
+    const n = $('apName').value.trim(), v = num.value;
+    if (n.length < 2) return msg('Type a name (2 letters or more)');
+    if (!/^\d{4}$/.test(v)) return msg('The number must be 4 digits');
+    if (PEOPLE.some(p => p.num === v)) return msg('That number is already used by ' + PEOPLE.find(p => p.num === v).name);
+    busy = true; msg('Creating…');
+    let r = null;
+    try { r = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ op: 'newuser', num: v, name: n, av }) }).then(x => x.json()); }
+    catch (e) { busy = false; return msg('Cannot reach the server. Check the internet.'); }
+    busy = false;
+    if (!r || !r.ok) {
+      const er = r && r.error;
+      return msg(er === 'taken' ? 'That number is already taken. Try another one.'
+        : er === 'full' ? 'There is no room for another account.'
+        : er === 'old' ? 'The server has not been updated for new accounts yet.'
+        : 'Could not create the account (' + (er || 'error') + ')');
+    }
+    addPerson({ num: v, name: n, av });
+    msg('Done! Signing in…');
+    const err = await login(v, v);
+    if (err) { closeModal(); toast('Account made. Tap ' + n + ' and type ' + v, 4000); }
+    else { closeModal(); toast('Welcome, ' + n + '! Your number is ' + v, 4000); }
+  };
+  setTimeout(() => { const e0 = $('apName'); if (e0) e0.focus(); }, 60);
 }
 function askPin(p) {
   let pin = '', busy = false;
@@ -1009,11 +1154,11 @@ function applyThemeId(id) {
   const m = document.querySelector('meta[name=theme-color]'); if (m) m.setAttribute('content', th.c);
 }
 function openThemes() {
-  const cur = currentTheme(), def = defaultTheme();
+  const cur = currentTheme();
   modal(`<h3>Theme</h3><div class="note">Pick a look for ${esc(me.name)}. It's saved with your account. <b>Your own</b> theme belongs to you alone — nobody else can choose it.</div>
     <div class="thgrid" id="thGrid">${THEME_LIST.filter(themeAllowed).map(x => `<button type="button" class="thsw ${x.id === cur ? 'on' : ''}" data-th="${x.id}">
       <span class="thprev" style="background:${x.p[0]}"><i style="background:${x.p[1]}"></i><i style="background:${x.p[2]}"></i></span>
-      <b>${esc(x.name)}</b>${x.id === def ? '<small>Your own</small>' : ''}</button>`).join('')}</div>
+      <b>${esc(x.name)}</b>${x.own ? '<small>Your own</small>' : ''}</button>`).join('')}</div>
     <button class="gloss g-glass" style="padding:12px" id="thClose">Close</button>`);
   $('thClose').onclick = closeModal;
   $('thGrid').onclick = e => {
@@ -1102,7 +1247,7 @@ let cloudT = 0, cloudAt = 0, cloudErr = '';
 function cloudDirty() { if (!me) return; clearTimeout(cloudT); cloudT = setTimeout(() => cloudSave(), 4000); }
 function cloudState() {
   const c = {};
-  for (const n in chats) c[n] = { name: chats[n].name, unread: 0, msgs: chats[n].msgs.slice(-100) };
+  for (const n in chats) c[n] = { name: chats[n].name, unread: 0, msgs: chats[n].msgs.slice(-100).map(m => m.kind ? Object.assign({}, m, { data: undefined, gone: true }) : m) };
   return { contacts, chats: c, recents: recents.slice(0, 40), quality, theme: store.get('theme', null), ts: Date.now() };
 }
 async function cloudSave() {
@@ -1240,7 +1385,7 @@ function renderRecents() {
       <button class="mini gloss ${r.video ? 'g-green' : 'g-blue'}" data-ri="${i}">${r.video ? I.video : I.phone}</button>
     </div>`;
   }).join('');
-  el.querySelectorAll('[data-ri]').forEach(b => b.onclick = () => { const r = recents[b.dataset.ri]; dial(r.num, r.video); });
+  el.querySelectorAll('[data-ri]').forEach(b => b.onclick = () => { const r = recents[b.dataset.ri]; if (r.group) return openGroupPicker(); dial(r.num, r.video); });
 }
 
 /* ---------- chat ---------- */
@@ -1254,6 +1399,7 @@ function chatOf(num, name) {
 }
 const chatName = num => (contacts.find(c => c.num === num) || {}).name || (chats[num] && chats[num].name) || num;
 function saveChats() {
+  trimMedia();
   for (const n in chats) if (chats[n].msgs.length > 300) chats[n].msgs = chats[n].msgs.slice(-300);
   store.set('chats', chats); renderChats(); updateBadge();
 }
@@ -1271,7 +1417,7 @@ function renderChats() {
   if (!rows.length) { el.innerHTML = '<div class="empty">No chats yet.<br>Add a contact with their number to start chatting.</div>'; return; }
   el.innerHTML = rows.map(r => {
     const name = chatName(r.n);
-    const prev = !r.last ? 'Say hi 👋' : r.last.call ? (r.last.call.video ? '📹 ' : '📞 ') + (r.last.call.result === 'ok' ? '' : r.last.me ? 'No answer · ' : 'Missed ') + (r.last.call.video ? 'Video call' : 'Voice call') : (r.last.me ? 'You: ' : '') + r.last.text;
+    const prev = !r.last ? 'Say hi 👋' : r.last.call ? (r.last.call.video ? '📹 ' : '📞 ') + (r.last.call.result === 'ok' ? '' : r.last.me ? 'No answer · ' : 'Missed ') + (r.last.call.video ? 'Video call' : 'Voice call') : (r.last.me ? 'You: ' : '') + (r.last.kind ? mediaLabel(r.last) : r.last.text);
     return `<button class="chatrow glass ${r.unread ? 'unread' : ''}" data-open="${r.n}">
       <div class="orb ${orbCls(name)}">${esc(initial(name))}</div>
       <div class="meta"><b>${esc(name)}</b><span>${esc(prev)}</span></div>
@@ -1281,6 +1427,7 @@ function renderChats() {
   el.querySelectorAll('[data-open]').forEach(b => b.onclick = () => openThread(b.dataset.open));
 }
 function openThread(num) {
+  clearReply();
   threadNum = num; const ch = chatOf(num); ch.unread = 0; saveChats(); clearNotif('jk-msg-' + num);
   const name = chatName(num);
   $('thName').textContent = name; updatePresence();
@@ -1314,11 +1461,12 @@ function renderThread(jump) {
       return;
     }
     const tick = m.me ? (m.st === 'pending' ? '<b title="Waiting to send">🕓</b>' : m.st === 'cloud' ? '<b title="Sent. It arrives when they open the app" style="letter-spacing:0">✓</b>' : `<b class="${m.st === 'read' ? 'read' : ''}" title="${m.st === 'read' ? 'Seen' : 'Delivered'}">✓✓</b>`) : '';
-    h += `<div class="bub ${m.me ? 'mine' : 'them'} ${onlyEmoji(m.text) ? 'big' : ''}">${esc(m.text)}<small>${t}${tick}</small></div>`;
+    h += bubbleHtml(m, t, tick);
   });
   if (ch.msgs.some(m => m.me && m.st === 'pending')) h += `<div class="pendnote">Will send when ${esc(chatName(threadNum))} opens the app</div>`;
   box.innerHTML = h;
   box.querySelectorAll('[data-cb]').forEach(b => b.onclick = () => dialFromThread(b.dataset.cb === '1'));
+  wireBubbles(box);
   if (jump || nearBottom) box.scrollTop = box.scrollHeight;
 }
 let returnThread = null;   // chat to reopen when the call started from it ends
@@ -1337,6 +1485,7 @@ $('composer').onsubmit = e => {
 function sendMsg(num, text) {
   text = String(text).trim().slice(0, 2000); if (!text) return;
   const m = { id: me.num + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), me: true, text, ts: Date.now(), st: 'pending' };
+  if (replyTo) { m.re = replyTo; clearReply(); }
   chatOf(num).msgs.push(m); saveChats(); renderThread(true);
   beep([700], 0.05, 0.04);
   flush(num); setTimeout(pump, 6500);
@@ -1361,9 +1510,15 @@ function adoptLink(c) {
 }
 function flush(num) {
   const ch = chats[num]; if (!ch) return;
-  const pend = ch.msgs.filter(m => m.me && m.st === 'pending'); if (!pend.length) return;
+  const pend = ch.msgs.filter(m => m.me && m.st === 'pending' && !(m.kind && !m.data)); if (!pend.length) return;
   const c = link(num); if (!c || !c.open) return;
-  pend.forEach(m => { try { c.send({ t: 'msg', id: m.id, text: m.text, ts: m.ts, name: me.name, num: me.num }); } catch (e) {} });
+  pend.forEach(m => {
+    try {
+      c.send(m.kind
+        ? { t: 'media', id: m.id, kind: m.kind, data: m.data, dur: m.dur, text: m.text, ts: m.ts, name: me.name, num: me.num, re: m.re }
+        : { t: 'msg', id: m.id, text: m.text, ts: m.ts, name: me.name, num: me.num, re: m.re });
+    } catch (e) {}
+  });
 }
 function sendRead(num) {
   const c = links[num]; if (c && c.open) { try { c.send({ t: 'read', num: me.num }); } catch (e) {} }
@@ -1371,19 +1526,24 @@ function sendRead(num) {
 const pop = () => { beep([880, 1320], 0.09, 0.05, 'sine'); beep([1175, 1760], 0.12, 0.05, 'sine', 0.1); };
 /* a message arrived, either straight from the other phone (c) or from the online inbox (c = null) */
 const ackQ = {};
-function receiveMsg(num, sentName, id0, text, c) {
+function receiveMsg(num, sentName, id0, text, c, opts) {
   if (!/^\d{4}$/.test(num)) return null;
   const saved = resolveContact(num, sentName);
   const ch = chatOf(num, saved ? saved.name : String(sentName || num).slice(0, 20));
   if (!saved && sentName) ch.name = String(sentName).slice(0, 20);
   const id = String(id0 || '').slice(0, 48);
   if (!ch.msgs.some(m => m.id === id)) {
-    ch.msgs.push({ id, me: false, text: String(text || '').slice(0, 2000), ts: Date.now(), st: 'in' });
+    const ex = opts || {};
+    const nm = { id, me: false, text: String(text || '').slice(0, 2000), ts: Date.now(), st: 'in' };
+    if (ex.re) nm.re = ex.re;
+    if (ex.kind) { nm.kind = ex.kind; nm.data = ex.data; if (ex.dur) nm.dur = ex.dur; }
+    ch.msgs.push(nm);
+    const prev = ex.kind === 'voice' ? '🎤 Voice message' : ex.kind === 'photo' ? '🖼️ Photo' : String(text || '');
     const seeing = threadNum === num && !document.hidden;
     if (!seeing) {
       ch.unread = (ch.unread || 0) + 1;
-      toast('💬 ' + chatName(num) + ': ' + String(text || '').slice(0, 60), 3000);
-      if (document.hidden) notify('💬 ' + chatName(num), { body: String(text || '').slice(0, 120), tag: 'jk-msg-' + num, renotify: true, vibrate: [200, 100, 200], data: { kind: 'msg', from: num } });
+      toast('💬 ' + chatName(num) + ': ' + prev.slice(0, 60), 3000);
+      if (document.hidden) notify('💬 ' + chatName(num), { body: prev.slice(0, 120), tag: 'jk-msg-' + num, renotify: true, vibrate: [200, 100, 200], data: { kind: 'msg', from: num } });
     }
     pop(); saveChats();
     if (threadNum === num) renderThread();
@@ -1414,7 +1574,7 @@ async function cloudSend(num, m) {
 function pump() {
   if (!me) return;
   for (const n in chats) {
-    const pend = chats[n].msgs.filter(m => m.me && m.st === 'pending' && !m.call);
+    const pend = chats[n].msgs.filter(m => m.me && m.st === 'pending' && !m.call && !m.kind);
     if (!pend.length) continue;
     if (peerReady) flush(n);
     const c = links[n];
@@ -1424,8 +1584,16 @@ function pump() {
 setInterval(pump, 8000);
 function onChatData(c, d) {
   const from = peerNum(c);
+  if (d.t === 'rx') return onReact(from, d);
+  if (d.t === 'media') {
+    const mid = receiveMsg(from, d.name, d.id, d.text || '', c, { kind: d.kind, data: d.data, dur: d.dur, re: d.re });
+    if (mid == null) return;
+    if (!links[from] || !links[from].open) links[from] = c;
+    try { c.send({ t: 'ack', id: mid }); } catch (e) {}
+    return;
+  }
   if (d.t === 'msg') {
-    const id = receiveMsg(from, d.name, d.id, d.text, c);
+    const id = receiveMsg(from, d.name, d.id, d.text, c, { re: d.re });
     if (id == null) return;
     if (!links[from] || !links[from].open) links[from] = c;
     try { c.send({ t: 'ack', id }); } catch (e) {}
@@ -1788,7 +1956,7 @@ function updateRemoteView() {
 function send(m) { try { if (call && call.conn && call.conn.open) call.conn.send(m); } catch (e) {} }
 
 async function dial(num, video) {
-  if (call) return;
+  if (call || gcall) return;
   if (!/^\d{4}$/.test(num || '')) return toast('Pick a 4-digit number');
   if (num === me.num) return toast("You can't call your own number");
   if (!peerReady) return toast('Still connecting… try again in a moment');
@@ -1822,9 +1990,10 @@ function wireConn(c) {
 function onData(c, d) {
   if (!d || typeof d !== 'object') return;
   if (d.t === 'nudge') return cloudPoll();
-  if (d.t === 'msg' || d.t === 'ack' || d.t === 'read') return onChatData(c, d);
+  if (typeof d.t === 'string' && d.t.length > 1 && d.t.charAt(0) === 'g') return onGroupData(c, d);
+  if (['msg', 'ack', 'read', 'rx', 'media'].includes(d.t)) return onChatData(c, d);
   if (d.t === 'ring') {
-    if (call) { try { c.send({ t: 'busy' }); } catch (e) {} setTimeout(() => c.close(), 800); return; }
+    if (call || gcall) { try { c.send({ t: 'busy' }); } catch (e) {} setTimeout(() => c.close(), 800); return; }
     const num = String(d.num || '').replace(/\D/g, '').slice(0, 4);
     const saved = resolveContact(num, d.name);
     call = { num, name: saved ? saved.name : String(d.name || 'Someone').slice(0, 20), video: !!d.video, dir: 'in', conn: c, facing: 'user', muted: false, camOff: false, unknown: !saved };
@@ -1870,6 +2039,7 @@ async function accept() {
 function decline() { if (!call) return; send({ t: 'decline' }); finish('Declined', 'declined'); }
 
 function onMedia(mc) {
+  if (mc.metadata && mc.metadata.group) return onGroupMedia(mc);
   if (!call || call.dir !== 'in' || !call.accepted || mc.peer !== PREFIX + call.num || !local) { try { mc.close(); } catch (e) {} return; }
   call.mc = mc; mc.answer(local); wireMedia(mc);
 }
@@ -1954,8 +2124,525 @@ function flashTitle(on) {
 }
 window.addEventListener('beforeunload', () => { if (call) send({ t: 'end' }); });
 
+/* ================= voice notes, pictures, reactions and replies, family call ================= */
+
+/* ---------- how a message looks ---------- */
+const RX = ['👍', '❤️', '😂', '😮', '🙏', '🎉'];
+const mediaLabel = m => m.kind === 'voice' ? '🎤 Voice message' : m.kind === 'photo' ? '🖼️ Photo' : String(m.text || '');
+function findMsg(id) { const ch = chats[threadNum]; return ch && ch.msgs.find(m => m.id === id); }
+function rxHtml(m) {
+  const rx = m.rx || {}, keys = Object.keys(rx).filter(k => rx[k]);
+  if (!keys.length) return '';
+  const c = {};
+  keys.forEach(n => c[rx[n]] = (c[rx[n]] || 0) + 1);
+  return `<div class="rxrow">${Object.keys(c).map(e => `<span>${e}${c[e] > 1 ? '<i>' + c[e] + '</i>' : ''}</span>`).join('')}</div>`;
+}
+function quoteHtml(m) {
+  if (!m.re) return '';
+  return `<div class="quote"><b>${esc(m.re.me ? 'You' : (m.re.name || ''))}</b><span>${esc(String(m.re.text || '').slice(0, 90))}</span></div>`;
+}
+function bubbleHtml(m, t, tick) {
+  const cls = 'bub ' + (m.me ? 'mine' : 'them');
+  const foot = `<small>${t}${tick}</small>`;
+  if (m.kind === 'voice') {
+    const body = m.data
+      ? `<div class="vn" data-play="${m.id}"><button type="button" class="vnb">▶</button><span class="vnw"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><em>${fmtDur(m.dur || 0)}</em></div>`
+      : '<div class="vn gone">🎤 Voice message · not on this device</div>';
+    return `<div class="${cls} media" data-mid="${m.id}">${quoteHtml(m)}${body}${foot}${rxHtml(m)}</div>`;
+  }
+  if (m.kind === 'photo') {
+    const body = m.data
+      ? `<img class="ph" src="${m.data}" data-view="${m.id}" alt="picture">`
+      : '<div class="vn gone">🖼️ Photo · not on this device</div>';
+    return `<div class="${cls} media" data-mid="${m.id}">${quoteHtml(m)}${body}${m.text ? '<span class="cap">' + esc(m.text) + '</span>' : ''}${foot}${rxHtml(m)}</div>`;
+  }
+  return `<div class="${cls} ${onlyEmoji(m.text) && !m.re ? 'big' : ''}" data-mid="${m.id}">${quoteHtml(m)}${esc(m.text)}${foot}${rxHtml(m)}</div>`;
+}
+/* hold a message (or right-click it) for reactions, reply and delete */
+function wireBubbles(box) {
+  box.querySelectorAll('[data-play]').forEach(b => b.onclick = e => { e.stopPropagation(); playVoice(b.dataset.play); });
+  box.querySelectorAll('[data-view]').forEach(b => b.onclick = e => { e.stopPropagation(); viewPhoto(b.dataset.view); });
+  box.querySelectorAll('[data-mid]').forEach(el => {
+    let tmr = 0, moved = false;
+    const open = () => { blip(); msgMenu(el.dataset.mid); };
+    el.oncontextmenu = e => { e.preventDefault(); open(); };
+    el.addEventListener('pointerdown', () => { moved = false; clearTimeout(tmr); tmr = setTimeout(() => { if (!moved) open(); }, 480); });
+    el.addEventListener('pointermove', () => { moved = true; clearTimeout(tmr); });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => el.addEventListener(ev, () => clearTimeout(tmr)));
+  });
+  markPlaying();
+}
+function msgMenu(id) {
+  const m = findMsg(id); if (!m) return;
+  const mine = m.rx && m.rx[me.num];
+  modal(`<h3>Message</h3><div class="note">${esc(mediaLabel(m).slice(0, 90) || ' ')}</div>
+    <div class="rxpick" id="rxPick">${RX.map(e => `<button type="button" data-rx="${e}" class="${mine === e ? 'on' : ''}">${e}</button>`).join('')}</div>
+    <button class="plain" id="mmReply">↩️ Reply to this</button>
+    ${m.kind ? '' : '<button class="plain" id="mmCopy">📋 Copy the text</button>'}
+    <button class="plain danger" id="mmDel">🗑️ Delete for me</button>
+    <button class="gloss g-glass" style="padding:12px" id="mmClose">Close</button>`);
+  $('mmClose').onclick = closeModal;
+  $('rxPick').onclick = e => { const b = e.target.closest('[data-rx]'); if (!b) return; react(m, b.dataset.rx); closeModal(); };
+  $('mmReply').onclick = () => { setReply(m); closeModal(); };
+  if ($('mmCopy')) $('mmCopy').onclick = () => { try { if (navigator.clipboard) navigator.clipboard.writeText(m.text); toast('Copied'); } catch (e) {} closeModal(); };
+  $('mmDel').onclick = () => {
+    const ch = chats[threadNum]; if (ch) ch.msgs = ch.msgs.filter(x => x !== m);
+    saveChats(); renderThread(); closeModal();
+  };
+}
+function react(m, e) {
+  m.rx = m.rx || {};
+  if (m.rx[me.num] === e) delete m.rx[me.num]; else m.rx[me.num] = e;
+  saveChats(); renderThread(); pop();
+  const c = links[threadNum];
+  if (c && c.open) { try { c.send({ t: 'rx', id: m.id, e: m.rx[me.num] || '', num: me.num }); } catch (x) {} }
+}
+function onReact(from, d) {
+  const ch = chats[from]; if (!ch) return;
+  const m = ch.msgs.find(x => x.id === d.id); if (!m) return;
+  m.rx = m.rx || {};
+  if (d.e) m.rx[from] = String(d.e).slice(0, 4); else delete m.rx[from];
+  saveChats(); if (threadNum === from) { renderThread(); pop(); }
+}
+/* ---------- replying to a message ---------- */
+let replyTo = null;
+function setReply(m) {
+  replyTo = { id: m.id, me: !!m.me, name: m.me ? me.name : chatName(threadNum), text: mediaLabel(m).slice(0, 90) };
+  renderReplyBar();
+  if (!matchMedia('(pointer: coarse)').matches) $('msgIn').focus();
+}
+function clearReply() { replyTo = null; renderReplyBar(); }
+function renderReplyBar() {
+  const b = $('replyBar'); if (!b) return;
+  b.classList.toggle('hidden', !replyTo);
+  if (!replyTo) { b.innerHTML = ''; return; }
+  b.innerHTML = `<div class="quote"><b>↩️ ${esc(replyTo.me ? 'You' : replyTo.name)}</b><span>${esc(replyTo.text)}</span></div><button type="button" id="rbX" title="Cancel">✕</button>`;
+  $('rbX').onclick = clearReply;
+}
+/* ---------- voice notes and pictures ---------- */
+function sendMedia(num, kind, data, extra) {
+  const ex = extra || {};
+  const m = { id: me.num + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), me: true, text: ex.text || '', ts: Date.now(), st: 'pending', kind, data };
+  if (ex.dur) m.dur = ex.dur;
+  if (replyTo) { m.re = replyTo; clearReply(); }
+  chatOf(num).msgs.push(m); saveChats();
+  if (threadNum === num) renderThread(true);
+  beep([700], 0.05, 0.04);
+  flush(num);
+  if (!(links[num] && links[num].open)) toast('Will send when ' + chatName(num) + ' opens the app', 3500);
+}
+let rec = null;
+async function startRec() {
+  if (rec || !threadNum) return;
+  if (typeof MediaRecorder === 'undefined') return toast('This browser cannot record voice messages');
+  if (await micState() === 'denied') return permPopup(false);
+  let s;
+  try { s = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }); }
+  catch (e) { return showMediaHelp(e); }
+  let mr;
+  try { mr = new MediaRecorder(s); } catch (e) { s.getTracks().forEach(t => t.stop()); return toast('This browser cannot record voice messages'); }
+  const parts = [];
+  rec = { mr, s, num: threadNum, t0: Date.now(), cancel: false, timer: 0 };
+  mr.ondataavailable = e => { if (e.data && e.data.size) parts.push(e.data); };
+  mr.onstop = () => {
+    const r = rec; rec = null;
+    if (r) { clearInterval(r.timer); r.s.getTracks().forEach(t => t.stop()); }
+    renderRecBar();
+    if (!r || r.cancel || !parts.length) return;
+    const dur = Math.max(1, Math.round((Date.now() - r.t0) / 1000));
+    const blob = new Blob(parts, { type: mr.mimeType || 'audio/webm' });
+    if (blob.size > 2400000) return toast('That voice message is too long');
+    const fr = new FileReader();
+    fr.onload = () => sendMedia(r.num, 'voice', fr.result, { dur });
+    fr.onerror = () => toast('Could not save the recording');
+    fr.readAsDataURL(blob);
+  };
+  try { mr.start(); } catch (e) { s.getTracks().forEach(t => t.stop()); rec = null; return toast('Could not start recording'); }
+  rec.timer = setInterval(() => { if (!rec) return; renderRecBar(); if (Date.now() - rec.t0 > 60000) stopRec(false); }, 250);
+  renderRecBar(); blip();
+}
+function stopRec(cancel) {
+  if (!rec) return;
+  rec.cancel = !!cancel;
+  try { rec.mr.stop(); } catch (e) { clearInterval(rec.timer); rec.s.getTracks().forEach(t => t.stop()); rec = null; renderRecBar(); }
+}
+function renderRecBar() {
+  const bar = $('recBar'); if (!bar) return;
+  bar.classList.toggle('hidden', !rec);
+  $('composer').classList.toggle('hidden', !!rec);
+  if (!rec) { bar.dataset.on = ''; bar.innerHTML = ''; return; }
+  if (bar.dataset.on !== '1') {
+    bar.dataset.on = '1';
+    bar.innerHTML = '<span class="recdot"></span><b id="recT">Recording…</b><button type="button" class="plain" id="recX">Cancel</button><button type="button" class="gloss g-green" id="recS">Send</button>';
+    $('recX').onclick = () => stopRec(true);
+    $('recS').onclick = () => stopRec(false);
+  }
+  $('recT').textContent = 'Recording… ' + fmtDur((Date.now() - rec.t0) / 1000);
+}
+let vPlayer = null, vPlayingId = '';
+function playVoice(id) {
+  const m = findMsg(id); if (!m || !m.data) return;
+  if (!vPlayer) { vPlayer = new Audio(); vPlayer.onended = () => { vPlayingId = ''; markPlaying(); }; }
+  if (vPlayingId === id && !vPlayer.paused) { vPlayer.pause(); vPlayingId = ''; markPlaying(); return; }
+  vPlayer.src = m.data; vPlayingId = id;
+  vPlayer.play().catch(() => toast('Tap the screen once, then play again'));
+  markPlaying();
+}
+function markPlaying() {
+  document.querySelectorAll('[data-play]').forEach(el => {
+    const on = el.dataset.play === vPlayingId && vPlayer && !vPlayer.paused;
+    el.classList.toggle('on', !!on);
+    const b = el.querySelector('.vnb'); if (b) b.textContent = on ? '❚❚' : '▶';
+  });
+}
+function shrinkImage(file, max, q) {
+  return new Promise((res, rej) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const sc = Math.min(1, max / Math.max(img.width, img.height));
+      const w = Math.max(1, Math.round(img.width * sc)), h = Math.max(1, Math.round(img.height * sc));
+      const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+      cv.getContext('2d').drawImage(img, 0, 0, w, h);
+      let d = cv.toDataURL('image/jpeg', q);
+      if (d.length > 950000) d = cv.toDataURL('image/jpeg', 0.5);
+      res(d);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('bad image')); };
+    img.src = url;
+  });
+}
+function viewPhoto(id) {
+  const m = findMsg(id); if (!m || !m.data) return;
+  modal(`<img src="${m.data}" style="max-width:100%;max-height:68vh;border-radius:14px;display:block;margin:0 auto">
+    <a class="plain" style="display:block;text-align:center;text-decoration:none" download="jk-photo.jpg" href="${m.data}">⬇️ Save the picture</a>
+    <button class="gloss g-glass" style="padding:12px" id="pvClose">Close</button>`);
+  $('pvClose').onclick = closeModal;
+}
+/* media is only kept on the phones that have it: the newest 40 keep their sound or picture */
+function trimMedia() {
+  const all = [];
+  for (const n in chats) chats[n].msgs.forEach(m => { if (m.kind && m.data) all.push(m); });
+  if (all.length <= 40) return;
+  all.sort((a, b) => b.ts - a.ts);
+  all.slice(40).forEach(m => { delete m.data; m.gone = true; });
+}
+if ($('micBtn')) $('micBtn').onclick = () => { if (rec) stopRec(false); else startRec(); };
+if ($('photoBtn')) $('photoBtn').onclick = () => { if (threadNum) $('photoIn').click(); };
+if ($('photoIn')) $('photoIn').onchange = async () => {
+  const f = $('photoIn').files && $('photoIn').files[0];
+  $('photoIn').value = '';
+  if (!f || !threadNum) return;
+  if (!/^image\//.test(f.type)) return toast('Pick a picture');
+  const num = threadNum;
+  toast('Getting the picture ready…', 1500);
+  try { sendMedia(num, 'photo', await shrinkImage(f, 1280, 0.72), {}); }
+  catch (e) { toast('Could not read that picture'); }
+};
+
+/* ---------- family call: everyone at once ---------- */
+let gcall = null, gwake = null;
+function groupCandidates() {
+  const nums = new Set();
+  PEOPLE.forEach(p => { if (p.num !== me.num) nums.add(p.num); });
+  contacts.forEach(c => { if (/^\d{4}$/.test(c.num || '') && c.num !== me.num) nums.add(c.num); });
+  return [...nums].map(n => ({ num: n, name: chatName(n) }));
+}
+function openGroupPicker() {
+  if (call || gcall) return toast('Finish the call first');
+  const list = groupCandidates();
+  if (!list.length) return toast('Add someone to Contacts first');
+  const picked = new Set(list.map(x => x.num));
+  modal(`<h3>👨‍👩‍👧‍👦 Family call</h3>
+    <div class="note">Everyone ticked rings at once, and whoever answers joins the same call.</div>
+    <div class="gpick" id="gPick">${list.map(p => `<button type="button" class="gp on" data-g="${p.num}"><span class="orb ${orbCls(p.name)}">${esc(initial(p.name))}</span><b>${esc(p.name)}</b><i>${p.num}</i></button>`).join('')}</div>
+    <div class="row"><button class="gloss g-blue" id="gAudio" style="padding:13px">📞 Voice</button><button class="gloss g-green" id="gVideo" style="padding:13px">📹 Video</button></div>
+    <button class="gloss g-glass" style="padding:12px" id="gCancel">Cancel</button>`);
+  $('gPick').onclick = e => {
+    const b = e.target.closest('[data-g]'); if (!b) return;
+    const n = b.dataset.g;
+    if (picked.has(n)) picked.delete(n); else picked.add(n);
+    b.classList.toggle('on', picked.has(n)); blip();
+  };
+  $('gCancel').onclick = closeModal;
+  const go = v => { if (!picked.size) return toast('Tick at least one person'); closeModal(); startGroup([...picked], v); };
+  $('gAudio').onclick = () => go(false);
+  $('gVideo').onclick = () => go(true);
+}
+function gsend(num, m) {
+  const c = link(num);
+  if (!c) return false;
+  if (c.open) { try { c.send(m); } catch (e) {} return true; }
+  c.on('open', () => { try { c.send(m); } catch (e) {} });
+  return false;
+}
+function gbroadcast(m, skip) {
+  if (!gcall) return;
+  Object.keys(gcall.members).forEach(n => { if (n !== me.num && n !== skip) gsend(n, m); });
+}
+function gbroadcastRaw(g, m) {
+  Object.keys(g.members).forEach(n => {
+    if (n === me.num) return;
+    const c = links[n];
+    if (c && c.open) { try { c.send(m); } catch (e) {} }
+  });
+}
+async function startGroup(nums, video) {
+  if (call || gcall) return;
+  if (!peerReady) return toast('Still connecting… try again in a moment');
+  if (await micState() === 'denied') return permPopup(false);
+  let s;
+  try { s = await getMedia(video); } catch (e) { return showMediaHelp(e); }
+  local = s;
+  if (video && !hasVideo(local)) { video = false; toast('No camera found — voice call instead'); }
+  gcall = { id: me.num + '-' + Date.now().toString(36), host: me.num, video, dir: 'out', muted: false, camOff: false, facing: 'user', members: {}, t0: 0 };
+  gcall.members[me.num] = { num: me.num, name: me.name, self: true, state: 'in' };
+  nums.forEach(n => gcall.members[n] = { num: n, name: chatName(n), state: 'ringing' });
+  openGroupUI('Ringing everyone…');
+  const roster = Object.keys(gcall.members);
+  const gid = gcall.id;
+  nums.forEach(n => {
+    gsend(n, { t: 'ginvite', gid, num: me.num, name: me.name, video, roster });
+    vapidJwts().then(jwts => api('ring', { to: n, video: !!video, jwts, k: VAPID_PUB })).catch(() => {});
+  });
+  ringback();
+  gcall.noAnswer = setTimeout(() => { if (gcall && gcall.id === gid && !gcall.t0) endGroup('Nobody answered'); }, 60000);
+}
+function onGInvite(from, d) {
+  if (call || gcall) { gsend(from, { t: 'gdecline', gid: d.gid, num: me.num, busy: true }); return; }
+  gcall = { id: String(d.gid || ''), host: from, video: !!d.video, dir: 'in', muted: false, camOff: false, facing: 'user', members: {}, t0: 0, pending: true };
+  gcall.members[me.num] = { num: me.num, name: me.name, self: true, state: 'ringing' };
+  (d.roster || []).forEach(n => {
+    n = String(n);
+    if (n === me.num || !/^\d{4}$/.test(n)) return;
+    gcall.members[n] = { num: n, name: chatName(n), state: n === from ? 'in' : 'ringing' };
+  });
+  gcall.members[from] = { num: from, name: String(d.name || chatName(from)).slice(0, 20), state: 'in' };
+  openGroupUI('Family call · incoming');
+  ringtone();
+  if (document.hidden) notify('👨‍👩‍👧‍👦 Family call', {
+    body: gcall.members[from].name + ' started a family ' + (gcall.video ? 'video call' : 'call') + '. Tap to join.',
+    tag: 'jk-gcall', renotify: true, requireInteraction: true, vibrate: [600, 300, 600, 300, 600], data: { kind: 'call', from }
+  });
+  gcall.noAnswer = setTimeout(() => { if (gcall && gcall.pending) endGroup('Missed family call'); }, 45000);
+}
+async function acceptGroup() {
+  if (!gcall || !gcall.pending) return;
+  stopTone();
+  const gid = gcall.id;
+  let s;
+  try { s = await getMedia(gcall.video); }
+  catch (e) { endGroup('Could not join'); return showMediaHelp(e); }
+  if (!gcall || gcall.id !== gid) { s.getTracks().forEach(t => t.stop()); return; }
+  local = s; gcall.pending = false;
+  clearTimeout(gcall.noAnswer); clearNotif('jk-gcall');
+  gcall.members[me.num].state = 'in';
+  gbroadcast({ t: 'gjoin', gid, num: me.num, name: me.name, roster: Object.keys(gcall.members) });
+  Object.keys(gcall.members).forEach(n => { if (gcall.members[n].state === 'in') maybeConnect(n); });
+  $('gState').textContent = 'Connecting…';
+  renderGrid(); gControls();
+}
+function declineGroup() {
+  if (!gcall) return;
+  gbroadcast({ t: 'gdecline', gid: gcall.id, num: me.num });
+  endGroup('You declined');
+}
+function maybeConnect(n) {
+  if (!gcall || gcall.pending || n === me.num || !local || !peer) return;
+  const m = gcall.members[n];
+  if (!m || m.state !== 'in' || m.mc) return;
+  if (me.num > n) return;            // the smaller number opens the media link, so it happens once
+  try {
+    const mc = peer.call(PREFIX + n, local, { metadata: { group: true, gid: gcall.id, num: me.num } });
+    wireGMedia(n, mc);
+  } catch (e) {}
+}
+function wireGMedia(n, mc) {
+  const m = gcall && gcall.members[n];
+  if (!m) { try { mc.close(); } catch (e) {} return; }
+  m.mc = mc;
+  mc.on('stream', rs => {
+    const mm = gcall && gcall.members[n];
+    if (!mm || mm.mc !== mc) return;
+    mm.stream = rs; mm.state = 'in';
+    renderGrid(); gLive();
+  });
+  mc.on('close', () => {
+    const mm = gcall && gcall.members[n];
+    if (!mm || mm.mc !== mc) return;
+    mm.mc = null; mm.stream = null;
+    if (mm.state === 'in') mm.state = 'left';
+    renderGrid(); checkGroupEmpty();
+  });
+  mc.on('error', () => {});
+  const pc = mc.peerConnection;
+  if (pc) pc.addEventListener('iceconnectionstatechange', () => { if (pc.iceConnectionState === 'connected') boostSender(pc); });
+}
+function onGroupMedia(mc) {
+  const n = String((mc.metadata && mc.metadata.num) || '').slice(0, 4);
+  if (!gcall || gcall.pending || !local || (mc.metadata && mc.metadata.gid) !== gcall.id || !gcall.members[n]) { try { mc.close(); } catch (e) {} return; }
+  gcall.members[n].state = 'in';
+  mc.answer(local); wireGMedia(n, mc);
+}
+function onGroupData(c, d) {
+  const from = peerNum(c);
+  if (d.t === 'ginvite') return onGInvite(from, d);
+  if (!gcall || d.gid !== gcall.id) return;
+  if (d.t === 'gjoin') {
+    const m = gcall.members[from] || (gcall.members[from] = { num: from, name: chatName(from), state: 'in' });
+    m.state = 'in';
+    if (d.name) m.name = String(d.name).slice(0, 20);
+    (d.roster || []).forEach(n => {
+      n = String(n);
+      if (n !== me.num && /^\d{4}$/.test(n) && !gcall.members[n]) gcall.members[n] = { num: n, name: chatName(n), state: 'ringing' };
+    });
+    maybeConnect(from); renderGrid(); gLive();
+    return;
+  }
+  const m = gcall.members[from]; if (!m) return;
+  if (d.t === 'gdecline') { m.state = d.busy ? 'busy' : 'declined'; renderGrid(); checkGroupEmpty(); return; }
+  if (d.t === 'gleave') { closeMember(m); m.state = 'left'; renderGrid(); checkGroupEmpty(); return; }
+  if (d.t === 'gmute') { m.muted = !!d.on; renderGrid(); return; }
+  if (d.t === 'gcam') { m.camOff = !d.on; renderGrid(); return; }
+}
+function openGroupUI(state) {
+  closeThread();
+  const scr = $('gcall'); if (!scr || !gcall) return;
+  scr.classList.remove('hidden');
+  $('gTitle').textContent = '👨‍👩‍👧‍👦 Family ' + (gcall.video ? 'video call' : 'call');
+  $('gState').textContent = state;
+  renderGrid(); gControls();
+}
+function renderGrid() {
+  if (!gcall) return;
+  const g = $('gGrid');
+  const nums = Object.keys(gcall.members);
+  nums.forEach(n => {
+    const m = gcall.members[n];
+    let tile = g.querySelector('[data-t="' + n + '"]');
+    if (!tile) {
+      tile = document.createElement('div');
+      tile.className = 'gtile'; tile.dataset.t = n;
+      tile.innerHTML = '<video playsinline autoplay></video><div class="orb"></div><div class="glbl"><b></b><span></span></div>';
+      g.appendChild(tile);
+    }
+    const v = tile.querySelector('video'), o = tile.querySelector('.orb');
+    const stream = m.self ? local : m.stream;
+    const showV = !!(stream && hasVideo(stream) && !(m.self ? gcall.camOff : m.camOff));
+    if (v.srcObject !== (stream || null)) { v.srcObject = stream || null; if (stream) v.play().catch(() => {}); }
+    v.muted = !!m.self;
+    v.style.opacity = showV ? '1' : '0';
+    o.className = 'orb ' + orbCls(m.name);
+    o.textContent = initial(m.name);
+    o.style.display = showV ? 'none' : '';
+    tile.querySelector('b').textContent = m.self ? 'You' : m.name;
+    const muted = m.self ? gcall.muted : m.muted;
+    tile.querySelector('span').textContent = m.state === 'ringing' ? 'ringing…'
+      : m.state === 'declined' ? 'declined' : m.state === 'busy' ? 'busy' : m.state === 'left' ? 'left'
+      : muted ? '🔇 muted' : '';
+    tile.classList.toggle('out', ['declined', 'busy', 'left'].includes(m.state));
+  });
+  [...g.children].forEach(t => { if (!gcall.members[t.dataset.t]) t.remove(); });
+  g.className = 'ggrid n' + Math.min(nums.length, 6);
+}
+function gControls() {
+  const box = $('gCtl'); if (!box || !gcall) return;
+  if (gcall.pending) {
+    box.className = 'controls incoming-row';
+    box.innerHTML = ctl('gDecline', 'g-red', I.hang, 'Decline', true) + ctl('gAccept', 'g-green wobble', gcall.video ? I.video : I.phone, 'Join', true);
+    $('gDecline').onclick = declineGroup;
+    $('gAccept').onclick = acceptGroup;
+    return;
+  }
+  box.className = 'controls';
+  let h = ctl('gMute', gcall.muted ? 'g-on' : 'g-glass', gcall.muted ? I.micOff : I.mic, gcall.muted ? 'Unmute' : 'Mute');
+  if (hasVideo(local)) {
+    h += ctl('gCam', gcall.camOff ? 'g-on' : 'g-glass', gcall.camOff ? I.camOff : I.cam, gcall.camOff ? 'Camera on' : 'Camera off');
+    h += ctl('gFlip', 'g-glass', I.flip, 'Flip');
+  }
+  h += ctl('gEnd', 'g-red', I.hang, 'Leave');
+  box.innerHTML = h;
+  $('gEnd').onclick = () => endGroup('You left the call');
+  $('gMute').onclick = () => {
+    gcall.muted = !gcall.muted;
+    if (local) local.getAudioTracks().forEach(t => t.enabled = !gcall.muted);
+    gbroadcast({ t: 'gmute', gid: gcall.id, on: gcall.muted });
+    gControls(); renderGrid();
+  };
+  if ($('gCam')) {
+    $('gCam').onclick = () => {
+      gcall.camOff = !gcall.camOff;
+      if (local) local.getVideoTracks().forEach(t => t.enabled = !gcall.camOff);
+      gbroadcast({ t: 'gcam', gid: gcall.id, on: !gcall.camOff });
+      gControls(); renderGrid();
+    };
+    $('gFlip').onclick = gFlip;
+  }
+}
+async function gFlip() {
+  if (!gcall || !local) return;
+  const facing = gcall.facing === 'environment' ? 'user' : 'environment';
+  try {
+    const s = tune(await navigator.mediaDevices.getUserMedia({ video: videoConstraints({ exact: facing }) }));
+    const nt = s.getVideoTracks()[0]; if (!nt) return;
+    const old = local.getVideoTracks()[0];
+    Object.keys(gcall.members).forEach(n => {
+      const m = gcall.members[n];
+      if (m.mc && m.mc.peerConnection) {
+        const sd = m.mc.peerConnection.getSenders().find(x => x.track && x.track.kind === 'video');
+        if (sd) sd.replaceTrack(nt).catch(() => {});
+      }
+    });
+    if (old) { local.removeTrack(old); old.stop(); }
+    nt.enabled = !gcall.camOff; local.addTrack(nt); gcall.facing = facing; renderGrid();
+  } catch (e) { toast('No other camera on this device'); }
+}
+function gLive() {
+  if (!gcall || gcall.t0) return;
+  const anyone = Object.keys(gcall.members).some(n => n !== me.num && gcall.members[n].stream);
+  if (!anyone) return;
+  stopTone(); clearTimeout(gcall.noAnswer);
+  gcall.t0 = Date.now();
+  beep([660, 880], 0.15, 0.06);
+  gTick(); gcall.timer = setInterval(gTick, 1000);
+  try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(w => gwake = w, () => {}); } catch (e) {}
+}
+function gTick() {
+  if (!gcall || !gcall.t0) return;
+  const n = Object.keys(gcall.members).filter(x => gcall.members[x].state === 'in').length;
+  $('gState').textContent = n + ' on the call · ' + fmtDur((Date.now() - gcall.t0) / 1000);
+}
+function closeMember(m) { try { if (m.mc) m.mc.close(); } catch (e) {} m.mc = null; m.stream = null; }
+function checkGroupEmpty() {
+  if (!gcall || gcall.pending) return;
+  const others = Object.keys(gcall.members).filter(n => n !== me.num);
+  if (!others.some(n => ['in', 'ringing'].includes(gcall.members[n].state))) endGroup(gcall.t0 ? 'Everyone left' : 'Nobody answered');
+}
+function endGroup(reason) {
+  if (!gcall) return;
+  const g = gcall; gcall = null;
+  clearTimeout(g.noAnswer); clearInterval(g.timer);
+  stopTone(); clearNotif('jk-gcall');
+  gbroadcastRaw(g, { t: 'gleave', gid: g.id, num: me.num });
+  Object.keys(g.members).forEach(n => closeMember(g.members[n]));
+  stopLocal();
+  if (gwake) { try { gwake.release(); } catch (e) {} gwake = null; }
+  const dur = g.t0 ? (Date.now() - g.t0) / 1000 : 0;
+  const names = Object.keys(g.members).filter(n => n !== me.num).map(n => g.members[n].name);
+  addRecent({ num: '', group: true, name: 'Family call · ' + names.join(', ').slice(0, 40), dir: g.dir, video: g.video, result: g.t0 ? 'ok' : 'missed', dur, q: '', t: Date.now() });
+  endTone();
+  $('gState').textContent = reason + (dur ? ' · ' + fmtDur(dur) : '');
+  $('gCtl').innerHTML = '';
+  setTimeout(() => {
+    if (!gcall) { $('gcall').classList.add('hidden'); $('gGrid').innerHTML = ''; }
+  }, 1400);
+}
+window.addEventListener('beforeunload', () => { if (gcall) gbroadcastRaw(gcall, { t: 'gleave', gid: gcall.id, num: me.num }); });
+if ($('familyBtn')) $('familyBtn').onclick = openGroupPicker;
+
 /* ---------- boot ---------- */
 renderPeople();
+loadPeople();
 const sess = gstore.get('session', null), sessP = sess && gstore.get('profiles', []).find(p => p.num === sess);
 if (sessP) { enter(sessP, null); const cq = qs.get('chat'); if (cq && /^\d{4}$/.test(cq)) openThread(cq); }
 })();
