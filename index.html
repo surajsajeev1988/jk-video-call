@@ -981,10 +981,10 @@ document.addEventListener('keydown', e => {
 // p = preview colours [background, their bubble, my bubble]; c = phone status-bar colour
 const THEME_LIST = [
   { id: 'classic', name: 'Classic', p: ['#0b141a', '#202c33', '#005c4b'], c: '#0b141a' },
-  { id: 'th-j', name: 'Neon Glow', p: ['linear-gradient(135deg,#2a0a5e,#07041a 55%,#4a0a3c)', 'rgba(30,14,64,.95)', 'linear-gradient(135deg,#7b2cff,#3d6bff)'], c: '#07041a' },
-  { id: 'th-k', name: 'Pink Cartoon', p: ['#ffd6ea', '#ffffff', '#ff8fc8'], c: '#ffd6ea' },
-  { id: 'th-s', name: 'Plain Green', p: ['#0d1f18', '#1f3a2e', '#056162'], c: '#075e54' },
-  { id: 'th-t', name: 'Rose Gold', p: ['linear-gradient(170deg,#5a1f4e,#22091f)', 'rgba(255,240,245,.3)', 'linear-gradient(170deg,#ffd9c6,#c27a86)'], c: '#2a0f2e' },
+  { id: 'th-j', name: 'Neon Glow', own: '2017', p: ['linear-gradient(135deg,#2a0a5e,#07041a 55%,#4a0a3c)', 'rgba(30,14,64,.95)', 'linear-gradient(135deg,#7b2cff,#3d6bff)'], c: '#07041a' },
+  { id: 'th-k', name: 'Pink Cartoon', own: '2019', p: ['#ffd6ea', '#ffffff', '#ff8fc8'], c: '#ffd6ea' },
+  { id: 'th-s', name: 'Plain Green', own: '1988', p: ['#0d1f18', '#1f3a2e', '#056162'], c: '#075e54' },
+  { id: 'th-t', name: 'Rose Gold', own: '1989', p: ['linear-gradient(170deg,#5a1f4e,#22091f)', 'rgba(255,240,245,.3)', 'linear-gradient(170deg,#ffd9c6,#c27a86)'], c: '#2a0f2e' },
   { id: 'tv-ocean', name: 'Ocean Deep', p: ['linear-gradient(180deg,#0b5f80,#021521)', 'rgba(15,70,100,.95)', 'linear-gradient(135deg,#00a6c7,#1e5bd8)'], c: '#04263a' },
   { id: 'tv-sunset', name: 'Sunset', p: ['linear-gradient(180deg,#2b0f3a,#6b1f3d 55%,#c2410c)', 'rgba(60,15,45,.9)', 'linear-gradient(135deg,#ff7a45,#e8336b)'], c: '#2b0f3a' },
   { id: 'tv-forest', name: 'Forest Gold', p: ['linear-gradient(180deg,#1f4d2b,#0a1a10)', '#1a3a24', '#2e6b3f'], c: '#0a1a10' },
@@ -998,8 +998,9 @@ const THEME_LIST = [
   { id: 'tv-arcade', name: 'Retro Arcade', p: ['linear-gradient(rgba(0,255,255,.25) 1px,transparent 1px) 0 0/10px 10px,#0a0a1f', '#16163a', '#ff2bd6'], c: '#0a0a1f' }
 ];
 const PERSONAL = { '2017': 'th-j', '2019': 'th-k', '1988': 'th-s', '1989': 'th-t' };   // each person's starting theme
+const themeAllowed = x => !x.own || (me && x.own === me.num);
 const defaultTheme = () => (me && PERSONAL[me.num]) || 'classic';
-const currentTheme = () => { const id = store.get('theme', null); return THEME_LIST.some(x => x.id === id) ? id : defaultTheme(); };
+const currentTheme = () => { const id = store.get('theme', null); return THEME_LIST.some(x => x.id === id && themeAllowed(x)) ? id : defaultTheme(); };
 function applyThemeId(id) {
   const th = THEME_LIST.find(x => x.id === id) || THEME_LIST[0];
   const b = document.body.classList;
@@ -1009,8 +1010,8 @@ function applyThemeId(id) {
 }
 function openThemes() {
   const cur = currentTheme(), def = defaultTheme();
-  modal(`<h3>Theme</h3><div class="note">Pick a look for ${esc(me.name)}. It's saved with your account.</div>
-    <div class="thgrid" id="thGrid">${THEME_LIST.map(x => `<button type="button" class="thsw ${x.id === cur ? 'on' : ''}" data-th="${x.id}">
+  modal(`<h3>Theme</h3><div class="note">Pick a look for ${esc(me.name)}. It's saved with your account. <b>Your own</b> theme belongs to you alone — nobody else can choose it.</div>
+    <div class="thgrid" id="thGrid">${THEME_LIST.filter(themeAllowed).map(x => `<button type="button" class="thsw ${x.id === cur ? 'on' : ''}" data-th="${x.id}">
       <span class="thprev" style="background:${x.p[0]}"><i style="background:${x.p[1]}"></i><i style="background:${x.p[2]}"></i></span>
       <b>${esc(x.name)}</b>${x.id === def ? '<small>Your own</small>' : ''}</button>`).join('')}</div>
     <button class="gloss g-glass" style="padding:12px" id="thClose">Close</button>`);
