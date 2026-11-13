@@ -764,6 +764,7 @@ body.tv-nature{--ink:#1d3524;--dim:#54734f;--faint:#86a37c;--edge:rgba(90,150,80
     <div class="logo">JK Video Call</div>
     <div class="sub">Who are you? Tap your picture.</div>
     <div class="people" id="people"></div>
+<div class="sub hidden" id="peopleHint" style="font-size:13px;opacity:.65">Hold a picture to change its name or face.</div>
   </section>
 
   <section class="setup reveal hidden" id="reveal">
@@ -1024,8 +1025,21 @@ function avatar(kind) {
 function renderPeople() {
   $('people').innerHTML = PEOPLE.map(p => `<button type="button" class="pickme" data-p="${p.num}"><div class="av">${avatar(p.av)}</div><b>${esc(p.name)}</b></button>`).join('')
     + '<button type="button" class="pickme addme" id="addPerson"><div class="av"><span>+</span></div><b>Add account</b></button>';
-  $('people').querySelectorAll('[data-p]').forEach(b => b.onclick = () => askPin(PEOPLE.find(p => p.num === b.dataset.p)));
+  $('people').querySelectorAll('[data-p]').forEach(b => pressEdit(b, PEOPLE.find(p => p.num === b.dataset.p)));
   $('addPerson').onclick = openAddAccount;
+  const hint = $('peopleHint'); if (hint) hint.classList.toggle('hidden', PEOPLE.length < 1);
+}
+/* tap a picture to sign in, hold it (or right-click) to change the name and face */
+function pressEdit(b, p) {
+  let t = null, held = false;
+  const go = () => { held = true; blip(); openEditAccount(p); };
+  const start = e => { if (e && e.button) return; held = false; clearTimeout(t); t = setTimeout(go, 600); };
+  const stop = () => clearTimeout(t);
+  b.addEventListener('touchstart', start, { passive: true });
+  ['touchend', 'touchmove', 'touchcancel', 'mouseup', 'mouseleave'].forEach(ev => b.addEventListener(ev, stop));
+  b.addEventListener('mousedown', start);
+  b.oncontextmenu = e => { e.preventDefault(); stop(); if (!held) go(); };
+  b.onclick = () => { if (held) { held = false; return; } askPin(p); };
 }
 /* keep the picker in step with the server, so a phone shows accounts added on another phone */
 function rememberPeople() {
@@ -1091,6 +1105,63 @@ function openAddAccount() {
     else { closeModal(); toast('Welcome, ' + n + '! Your number is ' + v, 4000); }
   };
   setTimeout(() => { const e0 = $('apName'); if (e0) e0.focus(); }, 60);
+}
+/* change a picture or a name, or remove an added account. The PIN stays the number. */
+function openEditAccount(p) {
+  if (!p) return;
+  const base = BASE_PEOPLE.some(b => b.num === p.num);
+  let av = AV_KINDS.includes(p.av) ? p.av : 'man', busy = false, sure = false;
+  modal(`<h3>✎ ${esc(p.name)}</h3>
+    <div class="note">Pick another picture or type another name. The number <b style="letter-spacing:2px">${p.num}</b> and the PIN do not change.</div>
+    <div class="avpick" id="edAv">${AV_KINDS.map(k => `<button type="button" data-av="${k}" class="${k === av ? 'on' : ''}">${avatar(k)}</button>`).join('')}</div>
+    <input class="field" id="edName" placeholder="Name" maxlength="14" autocomplete="off" value="${esc(p.name)}">
+    <div class="pinmsg" id="edMsg"></div>
+    <div class="row"><button class="gloss g-glass" id="edCancel">Cancel</button><button class="gloss g-green" id="edSave">Save</button></div>
+    ${base ? '<div class="note" style="text-align:center">This is one of the four first accounts, so it cannot be removed.</div>'
+           : '<button class="plain" id="edDel" style="color:#ff6b6b">🗑 Remove this account</button>'}`);
+  const msg = s => { const el = $('edMsg'); if (el) el.textContent = s; };
+  $('edAv').onclick = e => {
+    const b = e.target.closest('[data-av]'); if (!b) return;
+    av = b.dataset.av;
+    $('edAv').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+    blip();
+  };
+  $('edCancel').onclick = closeModal;
+  $('edSave').onclick = async () => {
+    if (busy) return;
+    const n = $('edName').value.trim();
+    if (n.length < 2) return msg('Type a name (2 letters or more)');
+    if (n === p.name && av === p.av) return closeModal();
+    busy = true; msg('Saving…');
+    let r = null;
+    try { r = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ op: 'edituser', num: p.num, pin: p.num, name: n, av }) }).then(x => x.json()); }
+    catch (e) { busy = false; return msg('Cannot reach the server. Check the internet.'); }
+    busy = false;
+    if (!r || !r.ok) return msg(r && r.error === 'unknown op' ? 'The server has not been updated for editing yet.'
+      : 'Could not save it (' + ((r && r.error) || 'error') + ')');
+    p.name = r.name; p.av = r.av;
+    rememberPeople(); renderPeople();
+    if (me && me.num === p.num) {
+      me.name = r.name;
+      const ps = gstore.get('profiles', []); ps.forEach(x => { if (x.num === p.num) x.name = r.name; }); gstore.set('profiles', ps);
+    }
+    closeModal(); toast('Saved', 2200);
+  };
+  if (!base) $('edDel').onclick = async () => {
+    if (busy) return;
+    if (!sure) { sure = true; $('edDel').textContent = '🗑 Tap again to remove ' + p.name; return msg('Chats on this phone stay, but ' + p.name + ' can no longer sign in.'); }
+    busy = true; msg('Removing…');
+    let r = null;
+    try { r = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ op: 'deluser', num: p.num, pin: p.num }) }).then(x => x.json()); }
+    catch (e) { busy = false; return msg('Cannot reach the server. Check the internet.'); }
+    busy = false;
+    if (!r || !r.ok) return msg('Could not remove it (' + ((r && r.error) || 'error') + ')');
+    PEOPLE = PEOPLE.filter(x => x.num !== p.num);
+    rememberPeople(); renderPeople();
+    closeModal(); toast(p.name + ' was removed', 2600);
+    if (me && me.num === p.num) logout();
+  };
+  setTimeout(() => { const e0 = $('edName'); if (e0) e0.focus(); }, 60);
 }
 function askPin(p) {
   let pin = '', busy = false;
@@ -1176,10 +1247,12 @@ function openAccount() {
       <div class="note">Phone number <b style="letter-spacing:2px">${me.num}</b></div>
       <div class="note">You stay signed in on this device, even after closing the app, until you change account.</div></div>
     <button class="gloss g-green" style="padding:13px" id="acSwitch">🔄 Change account</button>
+    <button class="plain" id="acEdit">✎ Change my picture and name</button>
     <button class="plain" id="acCopy">📋 Copy my number</button>
     <button class="gloss g-glass" style="padding:12px" id="acClose">Close</button>`);
   $('acClose').onclick = closeModal;
   $('acCopy').onclick = () => { closeModal(); $('myNumBtn').click(); };
+  $('acEdit').onclick = () => openEditAccount(p || { num: me.num, name: me.name, av: 'man' });
   $('acSwitch').onclick = logout;
 }
 $('accountBtn').onclick = () => { if (me) openAccount(); };
