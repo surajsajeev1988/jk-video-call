@@ -2,6 +2,10 @@
   "appId": "com.jkfamily.videocall",
   "appName": "JK Video Call",
   "webDir": "www",
+  "server": {
+    "url": "https://surajsajeev1988.github.io/jk-video-call/",
+    "errorPath": "offline.html"
+  },
   "android": { "allowMixedContent": false },
   "ios": { "contentInset": "never" }
 }

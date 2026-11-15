@@ -44,6 +44,10 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<false/>
+	<key>UIStatusBarHidden</key>
+	<true/>
+	<key>UIRequiresFullScreen</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>JK Video Call uses the camera for video calls and to take pictures to send.</string>

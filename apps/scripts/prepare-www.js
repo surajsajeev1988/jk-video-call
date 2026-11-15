@@ -1,10 +1,11 @@
-// Copies the web app into www/ for the phone and desktop builds, and bundles PeerJS
+// Copies the web app into www/ (a backup copy: the installed apps open the live site), for the phone and desktop builds, and bundles PeerJS
 // so the app opens without downloading anything first.
 const fs = require('fs'), path = require('path');
 const root = path.join(__dirname, '..', '..'), www = path.join(__dirname, '..', 'www');
 fs.rmSync(www, { recursive: true, force: true }); fs.mkdirSync(www);
 for (const f of ['index.html', 'manifest.json', 'sw.js', 'icon-192.png', 'icon-512.png']) fs.copyFileSync(path.join(root, f), path.join(www, f));
 fs.copyFileSync(require.resolve('peerjs/dist/peerjs.min.js'), path.join(www, 'peerjs.min.js'));
+fs.copyFileSync(path.join(__dirname, '..', 'offline.html'), path.join(www, 'offline.html'));   // shown when the live app can't be reached
 const idx = path.join(www, 'index.html');
 const html = fs.readFileSync(idx, 'utf8');
 const out = html.replace(/<script src="https:\/\/unpkg\.com\/peerjs@[^"]+"><\/script>/, '<script src="peerjs.min.js"></script>');

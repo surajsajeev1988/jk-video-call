@@ -14,8 +14,17 @@ latest **Build apps** run, and download from **Artifacts** at the bottom:
 | `JK-Video-Call-Windows` (`.exe`) | Windows | Run the setup `.exe`, or the `portable` one to use it without installing. Windows may warn that it doesn't know the publisher: choose **More info → Run anyway**. |
 | `JK-Video-Call-iPhone-unsigned` (`.ipa`) | iPhone | It has to be signed first. On a computer, use a tool such as Sideloadly with your Apple ID to install it. With a free Apple ID the app stops opening after 7 days and must be installed again; a paid Apple developer account lifts that. |
 
-The apps carry the whole page inside them, so nothing is downloaded when they open. Calls and
-messages still need Wi-Fi or mobile data.
+## Updates happen by themselves
+
+The installed apps open the live site, https://surajsajeev1988.github.io/jk-video-call/, full screen.
+Whatever is on the `main` branch is what every phone and computer shows the next time the app opens
+(GitHub Pages can take up to about 10 minutes to pick a change up). There's no need to reinstall.
+
+Reinstalling is only needed when the app shell itself changes: its icon, permissions, full-screen
+behaviour or the address it opens. Those changes live in `apps/`.
+
+Without internet the apps show a "No internet" screen and open by themselves once the phone is
+back online. Calls and messages need Wi-Fi or mobile data anyway.
 
 **Known limit:** when an app is fully closed, incoming calls can't ring it yet. Ringing a closed
 app needs Firebase (Android) and Apple push (iPhone) to be set up. Keep the app open or in the
