@@ -1060,6 +1060,7 @@ function piano(freq, when, dur = 1.2, vol = 0.22) {
 const canBuzz = () => navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive);
 function ringtone() {
   stopTone();
+  try { if (window.jkDesktop) window.jkDesktop.ring(); } catch (e) {}   // desktop app: bring the window up from the tray
   const N = { C4: 261.63, E4: 329.63, G4: 392, E5: 659.25, G5: 783.99, A5: 880, C6: 1046.5, D6: 1174.66, E6: 1318.51 };
   const tune = [['E5', 0], ['G5', 0.2], ['C6', 0.4], ['E6', 0.6], ['D6', 0.95], ['C6', 1.15], ['A5', 1.4], ['C6', 1.6], ['E6', 1.8], ['G5', 2.2]];
   const r = () => {
@@ -1829,11 +1830,13 @@ async function clearNotif(tag) {
 function renderNotifBar() {
   const b = $('notifBar'); if (!b) return;
   let mode = '';
-  if (me && isIOS && !standalone && !('Notification' in window)) mode = 'ios';
+  if (me && isIOS && window.Capacitor && !('Notification' in window)) mode = 'iosapp';
+  else if (me && isIOS && !standalone && !('Notification' in window)) mode = 'ios';
   else if (me && canSW && 'Notification' in window && Notification.permission === 'default') mode = 'ask';
   else if (me && canSW && 'Notification' in window && Notification.permission === 'denied') mode = 'blocked';
   b.classList.toggle('hidden', !mode);
-  if (mode === 'ios') b.innerHTML = '<span>🔔 For call notifications on iPhone: tap Share, choose <b>Add to Home Screen</b>, then open the app from that icon.</span>';
+  if (mode === 'iosapp') b.innerHTML = '<span>🔔 This iPhone app can\'t ring when it\'s closed. For calls that ring, open <b>' + HOME_URL.replace('https://', '') + '</b> in Safari, tap Share, choose <b>Add to Home Screen</b>, and use that icon instead.</span>';
+  else if (mode === 'ios') b.innerHTML = '<span>🔔 For call notifications on iPhone: tap Share, choose <b>Add to Home Screen</b>, then open the app from that icon.</span>';
   else if (mode === 'blocked') b.innerHTML = '<span>🔕 Notifications are blocked, so calls cannot reach this phone when the app is closed. Open the browser\'s site settings for this page and allow Notifications.</span>';
   else if (mode === 'ask') {
     b.innerHTML = '<span>🔔 Turn on notifications so calls and messages reach you when the app is closed.</span><button class="gloss g-green" id="nbOn">Turn on</button>';
