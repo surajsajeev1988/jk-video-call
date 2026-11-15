@@ -1,0 +1,60 @@
+# Builds the JK Video Call apps: Android (.apk), Windows (.exe) and iPhone (unsigned .ipa).
+# Download them from the run's "Artifacts" section on the Actions tab.
+name: Build apps
+
+on:
+  workflow_dispatch:
+  push:
+    paths: ['index.html', 'sw.js', 'manifest.json', 'icon-*.png', 'apps/**', '.github/workflows/apps.yml']
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: apps } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: apps/package-lock.json }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - run: npm ci
+        env: { ELECTRON_SKIP_BINARY_DOWNLOAD: '1' }
+      - run: npm run android:sync
+      - run: ./gradlew assembleDebug --no-daemon
+        working-directory: apps/android
+      - run: mv android/app/build/outputs/apk/debug/app-debug.apk JK-Video-Call.apk
+      - uses: actions/upload-artifact@v4
+        with: { name: JK-Video-Call-Android, path: apps/JK-Video-Call.apk }
+
+  windows:
+    runs-on: windows-latest
+    defaults: { run: { working-directory: apps } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: apps/package-lock.json }
+      - run: npm ci
+      - run: npm run win
+        env: { GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}' }
+      - uses: actions/upload-artifact@v4
+        with: { name: JK-Video-Call-Windows, path: 'apps/dist/*.exe' }
+
+  ios:
+    runs-on: macos-latest
+    defaults: { run: { working-directory: apps } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: apps/package-lock.json }
+      - run: npm ci
+        env: { ELECTRON_SKIP_BINARY_DOWNLOAD: '1' }
+      - run: npm run ios:sync
+      # an unsigned build: sign it on your own computer (for example with Sideloadly and your Apple ID) to install it
+      - run: |
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -sdk iphoneos \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build
+          mkdir -p Payload && cp -R build/Build/Products/Release-iphoneos/App.app Payload/
+          zip -qry ../../JK-Video-Call-unsigned.ipa Payload
+        working-directory: apps/ios/App
+      - uses: actions/upload-artifact@v4
+        with: { name: JK-Video-Call-iPhone-unsigned, path: apps/JK-Video-Call-unsigned.ipa }

@@ -1,0 +1,7 @@
+{
+  "appId": "com.jkfamily.videocall",
+  "appName": "JK Video Call",
+  "webDir": "www",
+  "android": { "allowMixedContent": false },
+  "ios": { "contentInset": "never" }
+}
