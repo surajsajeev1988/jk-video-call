@@ -56,7 +56,7 @@
 
         <!-- lets Chrome show the site's notifications (incoming calls and messages) as this app's -->
         <service
-            android:name="com.google.androidbrowserhelper.trusted.DelegationService"
+            android:name=".CallRingService"
             android:enabled="true"
             android:exported="true">
             <meta-data android:name="android.support.customtabs.trusted.SMALL_ICON" android:resource="@drawable/ic_notification" />

@@ -1046,7 +1046,19 @@ function beep(freqs, dur, vol = 0.12, type = 'sine', when = 0) {
 function stopTone() { clearInterval(toneT); toneT = 0; if (navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) navigator.vibrate(0); }
 function ringback() { stopTone(); const r = () => beep([440, 480], 1.6, 0.07); r(); toneT = setInterval(r, 4000); }
 /* one piano-like note: a few harmonics that each fade out, the higher ones faster */
-function piano(freq, when, dur = 1.2, vol = 0.22) {
+/* the ringtone goes through a loud bus: boosted, then limited so it is as loud as it can be without crackling */
+let ringBus = null;
+function loudBus() {
+  const a = audio(); if (!a) return null;
+  if (!ringBus) {
+    const g = a.createGain(), c = a.createDynamicsCompressor();
+    g.gain.value = 3.5;
+    c.threshold.value = -6; c.knee.value = 0; c.ratio.value = 20; c.attack.value = 0.002; c.release.value = 0.08;
+    g.connect(c); c.connect(a.destination); ringBus = g;
+  }
+  return ringBus;
+}
+function piano(freq, when, dur = 1.2, vol = 0.22, out = null) {
   const a = audio(); if (!a) return;
   const t0 = a.currentTime + when;
   [[1, 1], [2, 0.45], [3, 0.22], [4, 0.1]].forEach(([h, g]) => {
@@ -1054,7 +1066,7 @@ function piano(freq, when, dur = 1.2, vol = 0.22) {
     o.type = 'sine'; o.frequency.value = freq * h;
     gn.gain.setValueAtTime(0, t0); gn.gain.linearRampToValueAtTime(vol * g, t0 + 0.008);
     gn.gain.exponentialRampToValueAtTime(0.0001, t0 + dur / (1 + (h - 1) * 0.5));
-    o.connect(gn); gn.connect(a.destination); o.start(t0); o.stop(t0 + dur + 0.05);
+    o.connect(gn); gn.connect(out || a.destination); o.start(t0); o.stop(t0 + dur + 0.05);
   });
 }
 const canBuzz = () => navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive);
@@ -1064,8 +1076,9 @@ function ringtone() {
   const N = { C4: 261.63, E4: 329.63, G4: 392, E5: 659.25, G5: 783.99, A5: 880, C6: 1046.5, D6: 1174.66, E6: 1318.51 };
   const tune = [['E5', 0], ['G5', 0.2], ['C6', 0.4], ['E6', 0.6], ['D6', 0.95], ['C6', 1.15], ['A5', 1.4], ['C6', 1.6], ['E6', 1.8], ['G5', 2.2]];
   const r = () => {
-    tune.forEach(([n, at]) => piano(N[n], at));
-    piano(N.C4, 0, 1.9, 0.16); piano(N.G4, 0.6, 1.5, 0.1); piano(N.E4, 1.4, 1.8, 0.14);
+    const bus = loudBus();
+    tune.forEach(([n, at]) => piano(N[n], at, 1.2, 0.22, bus));
+    piano(N.C4, 0, 1.9, 0.16, bus); piano(N.G4, 0.6, 1.5, 0.1, bus); piano(N.E4, 1.4, 1.8, 0.14, bus);
     if (canBuzz()) navigator.vibrate([500, 250, 500, 250, 500]);
   };
   r(); toneT = setInterval(r, 3200);
