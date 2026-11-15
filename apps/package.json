@@ -9,27 +9,39 @@
     "www": "node scripts/prepare-www.js",
     "android:sync": "npm run www && npx cap sync android",
     "ios:sync": "npm run www && npx cap sync ios",
-    "win": "npm run www && electron-builder --win nsis portable",
+    "win": "npm run www && electron-builder --win nsis portable --publish never",
     "desktop:start": "npm run www && electron ."
   },
-  "dependencies": {
+  "devDependencies": {
     "@capacitor/android": "^7.4.0",
+    "@capacitor/cli": "^7.4.0",
     "@capacitor/core": "^7.4.0",
     "@capacitor/ios": "^7.4.0",
-    "peerjs": "1.5.4"
-  },
-  "devDependencies": {
-    "@capacitor/cli": "^7.4.0",
     "electron": "^37.2.0",
-    "electron-builder": "^26.0.12"
+    "electron-builder": "^26.0.12",
+    "peerjs": "1.5.4"
   },
   "build": {
     "appId": "com.jkfamily.videocall",
     "productName": "JK Video Call",
-    "directories": { "output": "dist" },
-    "files": ["electron/**", "www/**", "package.json"],
-    "win": { "icon": "www/icon-512.png" },
-    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true, "shortcutName": "JK Video Call" },
-    "portable": { "artifactName": "JK-Video-Call-portable.exe" }
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**",
+      "www/**",
+      "package.json"
+    ],
+    "win": {
+      "icon": "www/icon-512.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "JK Video Call"
+    },
+    "portable": {
+      "artifactName": "JK-Video-Call-portable.exe"
+    }
   }
 }
