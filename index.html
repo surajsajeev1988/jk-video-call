@@ -833,6 +833,8 @@ body.tv-matrix{--ink:#c8ffd4;--dim:#5fd47a;--faint:#3a8a4c;--edge:rgba(0,255,90,
   --t-glow:0 0 10px rgba(0,255,90,.35);--t-r:4px;--t-gloss:0;--t-read:#3dff7f;
   --t-font:"Courier New",ui-monospace,monospace}
 .thsurprise{display:flex;gap:8px}
+.thscheme{display:flex;gap:4px;padding:4px;border-radius:999px}
+.thscheme button{flex:1;padding:9px 4px;border-radius:999px;font-weight:600;font-size:14px}
 .thsurprise button{flex:1;padding:11px}
 .help ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:14.5px;line-height:1.4}
 .help a{color:#53bdeb;word-break:break-all}
@@ -1420,15 +1422,26 @@ const THEME_SEEDS = [
   ['dinosaur', 'Dinosaur', 'l', '#f2fbe9', '#dff3cc', '#4caf50', '#ff9800', 'dots'],
   ['mermaid', 'Mermaid', 'l', '#effcfb', '#e7ecff', '#14b8a6', '#a855f7', '']
 ];
+/* colour helpers for the generated themes */
+const tcRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const tcHex = c => '#' + c.map(v => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join('');
+const tcMix = (a, b, t) => { const x = tcRgb(a), y = tcRgb(b); return tcHex(x.map((v, i) => v + (y[i] - v) * t)); };
+const tcRgba = (h, a) => 'rgba(' + tcRgb(h).join(',') + ',' + a + ')';
+const tcLum = h => { const [r, g, b] = tcRgb(h).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+const tcContrast = (a, b) => { const x = tcLum(a), y = tcLum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+// nudge a colour toward white or black until it reads well on every background given
+const tcEnsure = (fg, bgs, min, toward) => { let c = fg; for (let t = 0; t <= 1.001 && bgs.some(b => tcContrast(c, b) < min); t += 0.05) c = tcMix(fg, toward, t); return c; };
+/* the other half of a theme: the same accents on a dark (or light) background built from them */
+function altSeed(slug, name, mode, a1, a2, pat) {
+  if (mode === 'd') {
+    const b1 = tcMix(a1, '#000000', 0.9), b2 = tcMix(a2, '#000000', 0.84);
+    return [slug, name, 'd', b1, b2, tcEnsure(a1, [b1, b2], 3.2, '#ffffff'), tcEnsure(a2, [b1, b2], 3.2, '#ffffff'), pat];
+  }
+  const b1 = tcMix(a1, '#ffffff', 0.92), b2 = tcMix(a2, '#ffffff', 0.84);
+  return [slug, name, 'l', b1, b2, tcEnsure(a1, [b1, b2], 1.8, '#000000'), tcEnsure(a2, [b1, b2], 1.8, '#000000'), pat];
+}
 function genThemes(seeds) {
-  const rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
-  const hex = c => '#' + c.map(v => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join('');
-  const mix = (a, b, t) => { const x = rgb(a), y = rgb(b); return hex(x.map((v, i) => v + (y[i] - v) * t)); };
-  const rgba = (h, a) => 'rgba(' + rgb(h).join(',') + ',' + a + ')';
-  const lum = h => { const [r, g, b] = rgb(h).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
-  const contrast = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
-  // nudge a colour toward white or black until it reads well on every background given
-  const ensure = (fg, bgs, min, toward) => { let c = fg; for (let t = 0; t <= 1.001 && bgs.some(b => contrast(c, b) < min); t += 0.05) c = mix(fg, toward, t); return c; };
+  const mix = tcMix, rgba = tcRgba, contrast = tcContrast, ensure = tcEnsure;
   const css = [], list = [];
   seeds.forEach(([slug, name, mode, b1, b2, a1, a2, pat], i) => {
     const dark = mode === 'd', id = 'tv-' + slug, bgs = [b1, b2, mix(b1, b2, 0.5)];
@@ -1462,32 +1475,85 @@ function genThemes(seeds) {
     };
     if (!dark) Object.assign(v, { '--t-callbg': 'linear-gradient(170deg,' + mix(a1, '#000000', 0.25) + ',' + mix(a2, '#000000', 0.55) + ')', '--t-modal': rgba(mix(b1, '#ffffff', 0.3), 0.6), '--t-gloss': '.8' });
     css.push('body.' + id + '{' + Object.entries(v).map(([k, x]) => k + ':' + x).join(';') + '}');
-    list.push({ id, name, p: ['linear-gradient(180deg,' + b1 + ',' + b2 + ')', them, 'linear-gradient(135deg,' + mine1 + ',' + mine2 + ')'], c: b1 });
+    list.push({ id, name, mode, p: ['linear-gradient(180deg,' + b1 + ',' + b2 + ')', them, 'linear-gradient(135deg,' + mine1 + ',' + mine2 + ')'], c: b1 });
   });
   return { css: css.join('\n'), list };
 }
+/* the Claude theme: warm cream and terracotta by day, warm charcoal by night */
+const CLAUDE_CSS = `
+body.tv-claude{--ink:#141413;--dim:#5e5d59;--faint:#87867f;--edge:rgba(20,20,19,.14);
+  --t-font:ui-serif,Georgia,"Times New Roman",serif;
+  --t-bg:linear-gradient(180deg,#faf9f5,#f0eee6);--t-callbg:linear-gradient(170deg,#3a3936,#1f1e1d);
+  --t-panel:rgba(255,255,255,.92);--t-card:#ffffff;--t-line:rgba(31,30,29,.13);
+  --t-acc:#c96442;--t-on-acc:#ffffff;--t-acc-text:#a3462a;
+  --t-mine:#ebe7dc;--t-on-mine:#141413;--t-them:#ffffff;
+  --t-glow:0 1px 3px rgba(31,30,29,.1);--t-r:14px;--t-modal:rgba(240,238,230,.72);--t-gloss:0;--t-read:#a3462a}
+body.tv-claude-alt{--ink:#faf9f5;--dim:#c2c0b6;--faint:#9a988f;--edge:rgba(250,249,245,.13);
+  --t-font:ui-serif,Georgia,"Times New Roman",serif;
+  --t-bg:linear-gradient(180deg,#262624,#1f1e1d);
+  --t-panel:rgba(48,48,46,.95);--t-card:#30302e;--t-line:rgba(250,249,245,.1);
+  --t-acc:#c96442;--t-on-acc:#ffffff;--t-acc-text:#e2896a;
+  --t-mine:#3d3b37;--t-on-mine:#faf9f5;--t-them:#30302e;
+  --t-glow:0 1px 3px rgba(0,0,0,.35);--t-r:14px;--t-gloss:0;--t-read:#e2896a}`;
+const CLAUDE = { id: 'tv-claude', name: 'Claude', mode: 'l', alt: 'tv-claude-alt', p: ['linear-gradient(180deg,#faf9f5,#f0eee6)', '#ffffff', '#ebe7dc'], c: '#faf9f5' };
+const CLAUDE_ALT = { id: 'tv-claude-alt', name: 'Claude', mode: 'd', p: ['linear-gradient(180deg,#262624,#1f1e1d)', '#30302e', '#3d3b37'], c: '#262624' };
+/* the hand-made themes' other halves: [their mode, the other half's accents and pattern] */
+const HAND_ALTS = {
+  'classic': ['d', '#25d366', '#00a884', ''], 'th-j': ['d', '#7b2cff', '#ff4fd8', 'dots'], 'th-k': ['l', '#ff8fc8', '#ff5fa2', 'dots'],
+  'th-s': ['d', '#1fa855', '#075e54', ''], 'th-t': ['d', '#e8a49c', '#c27a86', ''], 'tv-ocean': ['d', '#00b8d9', '#2979ff', 'dots'],
+  'tv-sunset': ['d', '#ff7a45', '#e8336b', ''], 'tv-forest': ['d', '#3f8f4f', '#2e6b3f', 'dots'], 'tv-galaxy': ['d', '#7c4dff', '#0288d1', 'dots'],
+  'tv-candy': ['l', '#ff7eb6', '#a78bfa', 'dots'], 'tv-lemon': ['l', '#ffd43b', '#ff922b', 'dots'], 'tv-gold': ['d', '#cba135', '#8a6514', ''],
+  'tv-ice': ['l', '#9ad8ff', '#3f9ae6', 'stars'], 'tv-lava': ['d', '#ff3d00', '#c60000', ''], 'tv-nature': ['l', '#8fd16a', '#3f8f4f', 'dots'],
+  'tv-arcade': ['d', '#ff2bd6', '#00b8d4', 'grid'], 'tv-rainbow': ['l', '#ff5f6d', '#3fa9ff', 'stars'], 'tv-blossom': ['l', '#ff9ec4', '#e05a8a', 'dots'],
+  'tv-mint': ['l', '#5ef0c0', '#14a37c', ''], 'tv-sky': ['l', '#5cb8ff', '#1f6fe0', 'stars'], 'tv-desert': ['l', '#f0a35e', '#c5652a', 'stripes'],
+  'tv-paper': ['l', '#9aa4b8', '#e0e6f0', ''], 'tv-coffee': ['d', '#a8703f', '#6b4428', ''], 'tv-royal': ['d', '#6a2fc2', '#8a4fd8', ''],
+  'tv-midnight': ['d', '#4c8dff', '#2a4f9a', ''], 'tv-peacock': ['d', '#0f8f86', '#1e45b8', 'dots'], 'tv-berry': ['d', '#c2185b', '#7b1fa2', ''],
+  'tv-matrix': ['d', '#00a845', '#006b2c', 'grid']
+};
+const THEME_ALTS = {};   // id -> its other half
 {
-  const g = genThemes(THEME_SEEDS), st = document.createElement('style');
-  st.id = 'genThemes'; st.textContent = g.css; document.head.appendChild(st);
-  THEME_LIST.push(...g.list);
+  const opp = m => (m === 'd' ? 'l' : 'd');
+  // the 76 one-line themes and their other halves
+  const main = genThemes(THEME_SEEDS);
+  const others = genThemes(THEME_SEEDS.map(([slug, name, mode, b1, b2, a1, a2, pat]) => altSeed(slug + '-alt', name, opp(mode), a1, a2, pat)));
+  main.list.forEach((x, i) => { x.alt = others.list[i].id; THEME_ALTS[x.id] = others.list[i]; });
+  // the hand-made themes' other halves
+  const hand = Object.entries(HAND_ALTS);
+  const handAlts = genThemes(hand.map(([id, [mode, a1, a2, pat]]) => altSeed(id.replace(/^tv-/, '').replace('-', '') + '-alt', '', opp(mode), a1, a2, pat)));
+  hand.forEach(([id, [mode]], i) => { const t = THEME_LIST.find(x => x.id === id); if (t) { t.mode = mode; t.alt = handAlts.list[i].id; THEME_ALTS[id] = handAlts.list[i]; } });
+  THEME_ALTS[CLAUDE.id] = CLAUDE_ALT;
+  const st = document.createElement('style');
+  st.id = 'genThemes'; st.textContent = [CLAUDE_CSS, main.css, others.css, handAlts.css].join('\n'); document.head.appendChild(st);
+  THEME_LIST.splice(1, 0, CLAUDE);   // right after Classic
+  THEME_LIST.push(...main.list);
 }
+/* light or dark: follow the phone (Auto), or always one of them */
+const darkMQ = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
+const schemePref = () => { const v = store.get('scheme', 'auto'); return ['auto', 'light', 'dark'].includes(v) ? v : 'auto'; };
+const wantMode = () => { const v = schemePref(); return v === 'auto' ? (darkMQ && darkMQ.matches ? 'd' : 'l') : v.charAt(0); };
+/* the half of a theme that is showing now */
+const themeShown = th => (th.alt && th.mode && th.mode !== wantMode() && THEME_ALTS[th.id]) || th;
 const PERSONAL = { '2017': 'th-j', '2019': 'th-k', '1988': 'th-s', '1989': 'th-t' };   // each person's starting theme
 const themeAllowed = x => !x.own || (me && x.own === me.num);
 const defaultTheme = () => (me && PERSONAL[me.num]) || 'classic';
 const currentTheme = () => { const id = store.get('theme', null); return THEME_LIST.some(x => x.id === id && themeAllowed(x)) ? id : defaultTheme(); };
 function applyThemeId(id) {
-  const th = THEME_LIST.find(x => x.id === id) || THEME_LIST[0];
+  const th = themeShown(THEME_LIST.find(x => x.id === id) || THEME_LIST[0]);
   const b = document.body.classList;
-  THEME_LIST.forEach(x => b.remove(x.id)); b.remove('tv');
+  THEME_LIST.forEach(x => b.remove(x.id)); Object.values(THEME_ALTS).forEach(x => b.remove(x.id)); b.remove('tv');
   if (th.id.startsWith('tv-')) { b.add('tv'); b.add(th.id); } else if (th.id !== 'classic') b.add(th.id);
   const m = document.querySelector('meta[name=theme-color]'); if (m) m.setAttribute('content', th.c);
 }
+// the phone switched between light and dark: switch the theme's half to match
+if (darkMQ) { const re = () => { if (me) applyThemeId(currentTheme()); }; if (darkMQ.addEventListener) darkMQ.addEventListener('change', re); else if (darkMQ.addListener) darkMQ.addListener(re); }
 function openThemes() {
   const cur = currentTheme();
   modal(`<h3>Theme</h3><div class="note">Pick one of ${THEME_LIST.filter(themeAllowed).length} looks for ${esc(me.name)}. It's saved with your account. <b>Your own</b> theme belongs to you alone — nobody else can choose it.</div>
-    <div class="thgrid" id="thGrid">${THEME_LIST.filter(themeAllowed).map(x => `<button type="button" class="thsw ${x.id === cur ? 'on' : ''}" data-th="${x.id}">
-      <span class="thprev" style="background:${x.p[0]}"><i style="background:${x.p[1]}"></i><i style="background:${x.p[2]}"></i></span>
-      <b>${esc(x.name)}</b>${x.own ? '<small>Your own</small>' : ''}</button>`).join('')}</div>
+    <div class="seg thscheme" id="thScheme">${[['auto', '🌗 Auto'], ['light', '☀️ Light'], ['dark', '🌙 Dark']].map(([k, t]) => `<button type="button" data-sc="${k}" class="${schemePref() === k ? 'on' : ''}">${t}</button>`).join('')}</div>
+    <div class="note" style="margin-top:-4px">Auto follows the phone: in dark mode every theme turns dark, and light in light mode.</div>
+    <div class="thgrid" id="thGrid">${THEME_LIST.filter(themeAllowed).map(x => { const v = themeShown(x); return `<button type="button" class="thsw ${x.id === cur ? 'on' : ''}" data-th="${x.id}">
+      <span class="thprev" style="background:${v.p[0]}"><i style="background:${v.p[1]}"></i><i style="background:${v.p[2]}"></i></span>
+      <b>${esc(x.name)}</b>${x.own ? '<small>Your own</small>' : ''}</button>`; }).join('')}</div>
     <div class="thsurprise"><button class="gloss g-glass" id="thRand">🎲 Surprise me</button><button class="gloss g-glass" id="thClose">Close</button></div>`);
   $('thClose').onclick = closeModal;
   const pick = b => {
@@ -1496,6 +1562,12 @@ function openThemes() {
     blip();
   };
   $('thGrid').onclick = e => { const b = e.target.closest('[data-th]'); if (b) pick(b); };
+  $('thScheme').onclick = e => {
+    const b = e.target.closest('[data-sc]'); if (!b) return;
+    store.set('scheme', b.dataset.sc); blip();
+    const top = $('sheet').scrollTop; openThemes(); $('sheet').scrollTop = top;   // redraw the previews in the new half
+    applyThemeId(currentTheme());
+  };
   $('thRand').onclick = () => {
     const bs = [...$('thGrid').querySelectorAll('.thsw:not(.on)')]; if (!bs.length) return;
     const b = bs[Math.floor(Math.random() * bs.length)]; pick(b); b.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
