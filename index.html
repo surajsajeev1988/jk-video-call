@@ -369,6 +369,14 @@ h2{margin:12px 6px 6px;color:#00a884;letter-spacing:.6px;font-size:12.5px}
 .avpick button{width:62px;height:62px;border-radius:50%;overflow:hidden;padding:0;opacity:.45;border:3px solid transparent;transition:.15s}
 .avpick button.on{opacity:1;border-color:#00a884;transform:scale(1.06)}
 .avpick svg{width:100%;height:100%;display:block}
+/* any number of accounts: the picker scrolls, and gets tighter as it fills */
+.setup{justify-content:flex-start;overflow-y:auto;min-height:0;padding:16px 10px}
+.setup::before,.setup::after{content:"";flex:1 0 0}
+.people.many{grid-template-columns:repeat(3,1fr);gap:10px;max-width:420px}
+.people.many .pickme{padding:12px 6px 10px}
+.people.many .pickme b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.people.many .av{width:70px;height:70px}
+.people.many .addme .av span{font-size:36px}
 .av{width:92px;height:92px;border-radius:50%;overflow:hidden;flex:none;box-shadow:0 4px 14px rgba(0,0,0,.4)}
 .av svg{width:100%;height:100%;display:block}
 .av.big{width:104px;height:104px}
@@ -751,6 +759,81 @@ body.tv-nature{--ink:#1d3524;--dim:#54734f;--faint:#86a37c;--edge:rgba(90,150,80
   --t-acc:linear-gradient(135deg,#8fd16a,#3f8f4f);--t-on-acc:#fff;--t-acc-text:#2e7d32;
   --t-mine:linear-gradient(135deg,#cdf0b4,#8fd16a);--t-on-mine:#1d3524;--t-them:rgba(255,255,255,.92);
   --t-glow:0 6px 16px rgba(63,143,79,.18);--t-r:22px;--t-modal:rgba(205,240,195,.6);--t-gloss:.85;--t-read:#1565c0}
+body.tv-rainbow{--ink:#2b2340;--dim:#6b6388;--faint:#9a93b5;--edge:rgba(140,110,220,.3);
+  --t-bg:linear-gradient(160deg,#ffe3e3,#fff4d6 20%,#e3ffe0 40%,#dff3ff 60%,#ebe3ff 80%,#ffe3f4);--t-callbg:linear-gradient(135deg,#ff5f6d,#ffc371 25%,#47e891 50%,#3fa9ff 75%,#a35cff);
+  --t-panel:rgba(255,255,255,.8);--t-card:rgba(255,255,255,.66);--t-line:rgba(140,110,220,.28);
+  --t-acc:linear-gradient(90deg,#ff5f6d,#ffc371,#47e891,#3fa9ff,#a35cff);--t-on-acc:#fff;--t-acc-text:#7b3dff;
+  --t-mine:linear-gradient(135deg,#ffd1dc,#d4c7ff);--t-on-mine:#2b2340;--t-them:#fff;
+  --t-glow:0 6px 18px rgba(123,61,255,.16);--t-r:22px;--t-modal:rgba(245,235,255,.6);--t-gloss:.8;--t-read:#2f7cf6}
+body.tv-blossom{--ink:#4a2333;--dim:#8f5c6f;--faint:#c08da0;--edge:rgba(230,120,160,.3);
+  --t-bg:radial-gradient(circle at 12px 12px,rgba(255,150,190,.35) 3px,transparent 3.6px) 0 0/40px 40px,linear-gradient(180deg,#fff0f5,#ffe1ec);--t-callbg:linear-gradient(170deg,#e86a92,#8c2f55);
+  --t-panel:rgba(255,255,255,.85);--t-card:rgba(255,255,255,.7);--t-line:rgba(230,120,160,.3);
+  --t-acc:linear-gradient(135deg,#ff9ec4,#e05a8a);--t-on-acc:#fff;--t-acc-text:#d0457a;
+  --t-mine:#ffc2d8;--t-on-mine:#4a2333;--t-them:#fff;
+  --t-glow:0 6px 16px rgba(224,90,138,.16);--t-r:24px;--t-modal:rgba(255,220,232,.6);--t-gloss:.85;--t-read:#2f7cf6}
+body.tv-mint{--ink:#10322b;--dim:#4d7a6f;--faint:#86aba1;--edge:rgba(40,180,140,.3);
+  --t-bg:linear-gradient(180deg,#e6fff7,#c9f5e6);--t-callbg:linear-gradient(170deg,#1fb98a,#0b5e48);
+  --t-panel:rgba(255,255,255,.84);--t-card:rgba(255,255,255,.68);--t-line:rgba(40,180,140,.28);
+  --t-acc:linear-gradient(135deg,#5ef0c0,#14a37c);--t-on-acc:#06281f;--t-acc-text:#0f8f6c;
+  --t-mine:#b5f2dc;--t-on-mine:#10322b;--t-them:#fff;
+  --t-glow:0 6px 16px rgba(20,163,124,.16);--t-r:20px;--t-modal:rgba(210,250,235,.6);--t-gloss:.8;--t-read:#1565c0}
+body.tv-sky{--ink:#0f2a4a;--dim:#4a6a8e;--faint:#86a2c0;--edge:rgba(80,150,230,.35);
+  --t-bg:radial-gradient(40% 18% at 20% 18%,rgba(255,255,255,.95),transparent 70%),radial-gradient(35% 14% at 78% 40%,rgba(255,255,255,.9),transparent 70%),linear-gradient(180deg,#7cc8ff,#cdeaff 70%,#eef8ff);--t-callbg:linear-gradient(180deg,#2f8de0,#123e75);
+  --t-panel:rgba(255,255,255,.8);--t-card:rgba(255,255,255,.66);--t-line:rgba(80,150,230,.3);
+  --t-acc:linear-gradient(180deg,#5cb8ff,#1f6fe0);--t-on-acc:#fff;--t-acc-text:#1f6fe0;
+  --t-mine:linear-gradient(170deg,#d2ecff,#9fd2ff);--t-on-mine:#0f2a4a;--t-them:#fff;
+  --t-glow:0 6px 18px rgba(31,111,224,.18);--t-r:22px;--t-modal:rgba(215,236,255,.6);--t-gloss:.9;--t-read:#1f6fe0}
+body.tv-desert{--ink:#3b2a18;--dim:#82694c;--faint:#b29a7c;--edge:rgba(200,150,90,.35);
+  --t-bg:linear-gradient(180deg,#ffe9c7,#f6d3a1 60%,#e9b77a);--t-callbg:linear-gradient(170deg,#c9773a,#5e3214);
+  --t-panel:rgba(255,248,236,.88);--t-card:rgba(255,248,236,.66);--t-line:rgba(200,150,90,.32);
+  --t-acc:linear-gradient(180deg,#f0a35e,#c5652a);--t-on-acc:#fff;--t-acc-text:#b4561f;
+  --t-mine:#f7d2a6;--t-on-mine:#3b2a18;--t-them:#fffaf2;
+  --t-glow:0 4px 14px rgba(197,101,42,.18);--t-r:16px;--t-modal:rgba(255,235,205,.6);--t-gloss:.6;--t-read:#1c6ed6}
+body.tv-paper{--ink:#1f2328;--dim:#5c6670;--faint:#8c96a0;--edge:#d8dde2;
+  --t-bg:#f6f7f9;--t-callbg:#1f2328;
+  --t-panel:#ffffff;--t-card:#ffffff;--t-line:#e1e5e9;
+  --t-acc:#1f2328;--t-on-acc:#fff;--t-acc-text:#1f2328;
+  --t-mine:#e8edf2;--t-on-mine:#1f2328;--t-them:#fff;
+  --t-glow:0 1px 3px rgba(0,0,0,.08);--t-r:12px;--t-modal:rgba(240,242,245,.7);--t-gloss:0;--t-read:#0b6bcb}
+body.tv-coffee{--ink:#f5ebe0;--dim:#c4ad96;--faint:#8f7a66;--edge:rgba(200,160,120,.3);
+  --t-bg:radial-gradient(70% 45% at 50% 0%,rgba(150,95,55,.4),transparent),linear-gradient(180deg,#2a1b12,#170e09);
+  --t-panel:rgba(40,26,17,.9);--t-card:rgba(80,52,34,.45);--t-line:rgba(200,160,120,.3);
+  --t-acc:linear-gradient(180deg,#e0b48a,#a8703f);--t-on-acc:#1f1208;--t-acc-text:#e0b48a;
+  --t-mine:#6b4428;--t-on-mine:#fbefe2;--t-them:#3a271a;
+  --t-glow:0 4px 14px rgba(168,112,63,.25);--t-r:18px;--t-gloss:.5;--t-read:#ffd9a8}
+body.tv-royal{--ink:#f3ecff;--dim:#bba8e0;--faint:#8774ad;--edge:rgba(230,190,90,.35);
+  --t-bg:radial-gradient(70% 45% at 50% 0%,rgba(140,70,220,.45),transparent),linear-gradient(180deg,#241046,#12062a);
+  --t-panel:rgba(32,14,64,.9);--t-card:rgba(70,36,130,.42);--t-line:rgba(230,190,90,.35);
+  --t-acc:linear-gradient(180deg,#ffe08a,#d4a435);--t-on-acc:#2a1600;--t-acc-text:#f0cb64;
+  --t-mine:linear-gradient(135deg,#6a2fc2,#4a1d94);--t-on-mine:#fff;--t-them:rgba(40,18,80,.92);
+  --t-glow:0 0 14px rgba(212,164,53,.3);--t-r:18px;--t-gloss:.6;--t-read:#ffe08a}
+body.tv-midnight{--ink:#e4ebf5;--dim:#91a0b8;--faint:#64738a;--edge:rgba(120,150,200,.2);
+  --t-bg:linear-gradient(180deg,#0d1526,#070b14);
+  --t-panel:#101a2e;--t-card:#15213a;--t-line:rgba(120,150,200,.2);
+  --t-acc:#4c8dff;--t-on-acc:#fff;--t-acc-text:#7aa9ff;
+  --t-mine:#2a4f9a;--t-on-mine:#fff;--t-them:#17243f;
+  --t-glow:0 2px 8px rgba(0,0,0,.35);--t-r:14px;--t-gloss:.2;--t-read:#7ad1ff}
+body.tv-peacock{--ink:#e8fffb;--dim:#97cfc6;--faint:#62968e;--edge:rgba(60,220,200,.3);
+  --t-bg:radial-gradient(60% 40% at 15% 10%,rgba(0,170,160,.45),transparent),radial-gradient(60% 45% at 90% 90%,rgba(40,80,220,.45),transparent),#04161c;
+  --t-panel:rgba(4,34,40,.88);--t-card:rgba(10,70,78,.45);--t-line:rgba(60,220,200,.3);
+  --t-acc:linear-gradient(135deg,#25e0c4,#2856e0);--t-on-acc:#fff;--t-acc-text:#4ff0d4;
+  --t-mine:linear-gradient(135deg,#0f8f86,#1e45b8);--t-on-mine:#fff;--t-them:rgba(8,48,56,.92);
+  --t-glow:0 0 14px rgba(37,224,196,.3);--t-r:20px;--t-read:#c7ff6b}
+body.tv-berry{--ink:#ffeef6;--dim:#e0a8c6;--faint:#a8708f;--edge:rgba(255,90,170,.3);
+  --t-bg:radial-gradient(70% 50% at 50% 0%,rgba(200,30,120,.45),transparent),linear-gradient(180deg,#2c0820,#14030e);
+  --t-panel:rgba(44,8,32,.88);--t-card:rgba(110,20,70,.4);--t-line:rgba(255,90,170,.3);
+  --t-acc:linear-gradient(135deg,#ff5fa8,#9b2cff);--t-on-acc:#fff;--t-acc-text:#ff7ab8;
+  --t-mine:linear-gradient(135deg,#c2185b,#7b1fa2);--t-on-mine:#fff;--t-them:rgba(60,12,44,.92);
+  --t-glow:0 0 14px rgba(255,95,168,.3);--t-r:22px;--t-read:#ffe066}
+body.tv-matrix{--ink:#c8ffd4;--dim:#5fd47a;--faint:#3a8a4c;--edge:rgba(0,255,90,.3);
+  --t-bg:repeating-linear-gradient(0deg,rgba(0,255,90,.05) 0 1px,transparent 1px 4px),#020a04;
+  --t-panel:#03140a;--t-card:#061d0e;--t-line:rgba(0,255,90,.35);
+  --t-acc:#00e05a;--t-on-acc:#001a08;--t-acc-text:#3dff7f;
+  --t-mine:#0a3a1a;--t-on-mine:#c8ffd4;--t-them:#061d0e;
+  --t-glow:0 0 10px rgba(0,255,90,.35);--t-r:4px;--t-gloss:0;--t-read:#3dff7f;
+  --t-font:"Courier New",ui-monospace,monospace}
+.thsurprise{display:flex;gap:8px}
+.thsurprise button{flex:1;padding:11px}
 .help ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:14.5px;line-height:1.4}
 .help a{color:#53bdeb;word-break:break-all}
 </style>
@@ -1025,6 +1108,7 @@ function avatar(kind) {
 function renderPeople() {
   $('people').innerHTML = PEOPLE.map(p => `<button type="button" class="pickme" data-p="${p.num}"><div class="av">${avatar(p.av)}</div><b>${esc(p.name)}</b></button>`).join('')
     + '<button type="button" class="pickme addme" id="addPerson"><div class="av"><span>+</span></div><b>Add account</b></button>';
+  $('people').classList.toggle('many', PEOPLE.length > 5);
   $('people').querySelectorAll('[data-p]').forEach(b => pressEdit(b, PEOPLE.find(p => p.num === b.dataset.p)));
   $('addPerson').onclick = openAddAccount;
   const hint = $('peopleHint'); if (hint) hint.classList.toggle('hidden', PEOPLE.length < 1);
@@ -1039,7 +1123,7 @@ function pressEdit(b, p) {
   ['touchend', 'touchmove', 'touchcancel', 'mouseup', 'mouseleave'].forEach(ev => b.addEventListener(ev, stop));
   b.addEventListener('mousedown', start);
   b.oncontextmenu = e => { e.preventDefault(); stop(); if (!held) go(); };
-  b.onclick = () => { if (held) { held = false; return; } askPin(p); };
+  b.onclick = () => { if (held) { held = false; return; } quickLogin(p); };
 }
 /* keep the picker in step with the server, so a phone shows accounts added on another phone */
 function rememberPeople() {
@@ -1061,11 +1145,11 @@ function addPerson(p) {
   if (!PEOPLE.some(x => x.num === p.num)) PEOPLE.push(p);
   rememberPeople(); renderPeople();
 }
-/* a new person: a face, a name and a 4-digit number. That number is the PIN as well. */
+/* a new person: a face, a name and a 4-digit number. No password: the server is sent the number as the PIN. */
 function openAddAccount() {
   let av = 'boy', busy = false;
   modal(`<h3>➕ Add account</h3>
-    <div class="note">Pick a picture and a name, then choose a 4-digit number. That number is how the family call you, and it is your PIN too.</div>
+    <div class="note">Pick a picture and a name, then choose a 4-digit number. That number is how the family call you. No password: just tap your picture to sign in.</div>
     <div class="avpick" id="apAv">${AV_KINDS.map(k => `<button type="button" data-av="${k}" class="${k === av ? 'on' : ''}">${avatar(k)}</button>`).join('')}</div>
     <input class="field" id="apName" placeholder="Name" maxlength="14" autocomplete="off">
     <input class="field" id="apNum" placeholder="4-digit number" inputmode="numeric" maxlength="4" autocomplete="off" style="letter-spacing:4px;font-size:20px;text-align:center">
@@ -1094,7 +1178,7 @@ function openAddAccount() {
     if (!r || !r.ok) {
       const er = r && r.error;
       return msg(er === 'taken' ? 'That number is already taken. Try another one.'
-        : er === 'full' ? 'There is no room for another account.'
+        : er === 'full' ? 'The server still has an account limit. Raise it in the Apps Script to add more.'
         : er === 'old' ? 'The server has not been updated for new accounts yet.'
         : 'Could not create the account (' + (er || 'error') + ')');
     }
@@ -1163,11 +1247,28 @@ function openEditAccount(p) {
   };
   setTimeout(() => { const e0 = $('edName'); if (e0) e0.focus(); }, 60);
 }
-function askPin(p) {
+/* tap a picture and you're in: no password. It tries the PIN this phone remembers, then the
+   account's own number (what added accounts use). Only if the server still wants a different PIN
+   is it asked for, once; after that this phone remembers it. */
+const WRONG_PIN = 'Wrong PIN. Try again.';
+let quickBusy = false;
+async function quickLogin(p) {
+  if (quickBusy) return;
+  const saved = (gstore.get('profiles', []).find(x => x.num === p.num) || {}).pin;
+  const tries = [...new Set([saved, p.num].filter(Boolean))];
+  quickBusy = true; toast('Signing in as ' + p.name + '…', 10000);
+  let err = WRONG_PIN;
+  for (const pin of tries) { err = await login(p.num, pin); if (err !== WRONG_PIN) break; }
+  quickBusy = false;
+  if (!err) return toast('Hi ' + (me ? me.name : p.name) + '!', 1500);
+  if (err === WRONG_PIN) { toast('One-time PIN needed', 1500); return askPin(p, true); }
+  toast(err, 3500);
+}
+function askPin(p, once) {
   let pin = '', busy = false;
   modal(`<div style="display:flex;flex-direction:column;align-items:center;gap:8px">
     <div class="av big">${avatar(p.av)}</div><h3>${esc(p.name)}</h3>
-    <div class="note">Enter your 4-digit PIN</div>
+    <div class="note">${once ? 'This account still has an old PIN on the server. Enter it once and this phone will remember it, so you won’t be asked again.' : 'Enter your 4-digit PIN'}</div>
     <div class="pins" id="pinDots"></div><div class="pinmsg" id="pinMsg"></div>
     <div class="pinpad" id="pinPad">${['1', '2', '3', '4', '5', '6', '7', '8', '9', 'x', '0', '<'].map(k => `<button type="button" data-k="${k}">${k === '<' ? '⌫' : k === 'x' ? 'Cancel' : k}</button>`).join('')}</div></div>`);
   const draw = () => { $('pinDots').innerHTML = [0, 1, 2, 3].map(i => `<i class="${i < pin.length ? 'on' : ''}"></i>`).join(''); };
@@ -1211,7 +1312,19 @@ const THEME_LIST = [
   { id: 'tv-ice', name: 'Ice Crystal', p: ['linear-gradient(170deg,#e8f6ff,#cfe9fb)', 'rgba(255,255,255,.95)', 'linear-gradient(170deg,#c9ebff,#8cc9f5)'], c: '#e8f6ff' },
   { id: 'tv-lava', name: 'Lava', p: ['radial-gradient(80% 60% at 50% 100%,#ff5000,transparent),#120404', 'rgba(45,10,10,.95)', 'linear-gradient(135deg,#d63a00,#8f0f0f)'], c: '#120404' },
   { id: 'tv-nature', name: 'Nature', p: ['linear-gradient(180deg,#bfe8ff,#d6efc9)', '#ffffff', 'linear-gradient(135deg,#cdf0b4,#8fd16a)'], c: '#e9f7e2' },
-  { id: 'tv-arcade', name: 'Retro Arcade', p: ['linear-gradient(rgba(0,255,255,.25) 1px,transparent 1px) 0 0/10px 10px,#0a0a1f', '#16163a', '#ff2bd6'], c: '#0a0a1f' }
+  { id: 'tv-arcade', name: 'Retro Arcade', p: ['linear-gradient(rgba(0,255,255,.25) 1px,transparent 1px) 0 0/10px 10px,#0a0a1f', '#16163a', '#ff2bd6'], c: '#0a0a1f' },
+  { id: 'tv-rainbow', name: 'Rainbow', p: ['linear-gradient(135deg,#ffd1d1,#fff1c4,#d4ffd0,#cdeaff,#e2d6ff)', '#ffffff', 'linear-gradient(90deg,#ff5f6d,#ffc371,#47e891,#3fa9ff,#a35cff)'], c: '#fff4d6' },
+  { id: 'tv-blossom', name: 'Cherry Blossom', p: ['linear-gradient(180deg,#fff0f5,#ffd6e6)', '#ffffff', '#ffb0cf'], c: '#fff0f5' },
+  { id: 'tv-mint', name: 'Fresh Mint', p: ['linear-gradient(180deg,#e6fff7,#c9f5e6)', '#ffffff', '#9eeccf'], c: '#e6fff7' },
+  { id: 'tv-sky', name: 'Blue Sky', p: ['linear-gradient(180deg,#7cc8ff,#eef8ff)', '#ffffff', 'linear-gradient(170deg,#d2ecff,#9fd2ff)'], c: '#7cc8ff' },
+  { id: 'tv-desert', name: 'Desert Sand', p: ['linear-gradient(180deg,#ffe9c7,#e9b77a)', '#fffaf2', '#f2c48e'], c: '#ffe9c7' },
+  { id: 'tv-paper', name: 'Paper White', p: ['#f6f7f9', '#ffffff', '#dde3ea'], c: '#f6f7f9' },
+  { id: 'tv-coffee', name: 'Coffee', p: ['linear-gradient(180deg,#4a2f1e,#170e09)', '#3a271a', '#6b4428'], c: '#2a1b12' },
+  { id: 'tv-royal', name: 'Royal Purple', p: ['linear-gradient(180deg,#3a1a6e,#12062a)', 'rgba(40,18,80,.95)', 'linear-gradient(135deg,#ffe08a,#d4a435)'], c: '#241046' },
+  { id: 'tv-midnight', name: 'Midnight Blue', p: ['linear-gradient(180deg,#0d1526,#070b14)', '#17243f', '#2a4f9a'], c: '#0d1526' },
+  { id: 'tv-peacock', name: 'Peacock', p: ['radial-gradient(70% 60% at 15% 10%,#00aaa0,transparent),radial-gradient(70% 60% at 90% 90%,#2850dc,transparent),#04161c', 'rgba(8,48,56,.95)', 'linear-gradient(135deg,#0f8f86,#1e45b8)'], c: '#04161c' },
+  { id: 'tv-berry', name: 'Berry Smoothie', p: ['linear-gradient(180deg,#5a0f3e,#14030e)', 'rgba(60,12,44,.95)', 'linear-gradient(135deg,#c2185b,#7b1fa2)'], c: '#2c0820' },
+  { id: 'tv-matrix', name: 'Hacker Green', p: ['repeating-linear-gradient(0deg,rgba(0,255,90,.15) 0 1px,transparent 1px 4px),#020a04', '#061d0e', '#0a3a1a'], c: '#020a04' }
 ];
 const PERSONAL = { '2017': 'th-j', '2019': 'th-k', '1988': 'th-s', '1989': 'th-t' };   // each person's starting theme
 const themeAllowed = x => !x.own || (me && x.own === me.num);
@@ -1230,13 +1343,17 @@ function openThemes() {
     <div class="thgrid" id="thGrid">${THEME_LIST.filter(themeAllowed).map(x => `<button type="button" class="thsw ${x.id === cur ? 'on' : ''}" data-th="${x.id}">
       <span class="thprev" style="background:${x.p[0]}"><i style="background:${x.p[1]}"></i><i style="background:${x.p[2]}"></i></span>
       <b>${esc(x.name)}</b>${x.own ? '<small>Your own</small>' : ''}</button>`).join('')}</div>
-    <button class="gloss g-glass" style="padding:12px" id="thClose">Close</button>`);
+    <div class="thsurprise"><button class="gloss g-glass" id="thRand">🎲 Surprise me</button><button class="gloss g-glass" id="thClose">Close</button></div>`);
   $('thClose').onclick = closeModal;
-  $('thGrid').onclick = e => {
-    const b = e.target.closest('[data-th]'); if (!b) return;
+  const pick = b => {
     store.set('theme', b.dataset.th); applyThemeId(b.dataset.th);
     $('thGrid').querySelectorAll('.thsw').forEach(x => x.classList.toggle('on', x === b));
     blip();
+  };
+  $('thGrid').onclick = e => { const b = e.target.closest('[data-th]'); if (b) pick(b); };
+  $('thRand').onclick = () => {
+    const bs = [...$('thGrid').querySelectorAll('.thsw:not(.on)')]; if (!bs.length) return;
+    const b = bs[Math.floor(Math.random() * bs.length)]; pick(b); b.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   };
 }
 function openAccount() {
@@ -1272,7 +1389,7 @@ function enter(p, remote) {
 async function login(num, pin) {   // returns '' when it worked, or a message to show
   try {
     const r = await api('load', null, { num, pin });
-    if (!r.ok) return r.error === 'login' ? 'Wrong PIN. Try again.' : 'Could not log in (' + r.error + ')';
+    if (!r.ok) return r.error === 'login' ? WRONG_PIN :'Could not log in (' + r.error + ')';
     enter({ num, name: r.name, pin }, r);
     return '';
   } catch (e) { return 'Cannot reach the server. Check the internet.'; }
