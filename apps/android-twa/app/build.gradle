@@ -1,0 +1,44 @@
+plugins { id 'com.android.application' }
+
+// The app opens the live site in Chrome (a Trusted Web Activity), so the site's push notifications
+// ring this phone even when the app is closed, and every change to the site shows up by itself.
+def LIVE_HOST = 'surajsajeev1988.github.io'
+def LIVE_URL = 'https://surajsajeev1988.github.io/jk-video-call/'
+
+android {
+    namespace 'com.jkfamily.videocall'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'com.jkfamily.videocall'
+        minSdk 24
+        targetSdk 35
+        versionCode 22
+        versionName '2.2'
+        resValue 'string', 'launchUrl', LIVE_URL
+        resValue 'string', 'hostName', LIVE_HOST
+        resValue 'string', 'providerAuthority', 'com.jkfamily.videocall.fileprovider'
+        resValue 'string', 'asset_statements', """[{ "relation": ["delegate_permission/common.handle_all_urls"], "target": { "namespace": "web", "site": "https://${LIVE_HOST}" } }]"""
+    }
+    // The same signing key must be used for every build: the site's assetlinks.json names it, which is
+    // what lets the app open full screen with no address bar. Without the key, builds use a debug key.
+    def ksPath = System.getenv('JK_KEYSTORE') ?: rootProject.file('jk-release.keystore').path
+    def ksPass = System.getenv('JK_KEYSTORE_PASSWORD')
+    def haveKey = ksPass && file(ksPath).exists()
+    signingConfigs {
+        family {
+            if (haveKey) { storeFile file(ksPath); storePassword ksPass; keyAlias 'jk'; keyPassword ksPass }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig haveKey ? signingConfigs.family : signingConfigs.debug
+        }
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    buildFeatures { resValues true }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.7.4'
+}

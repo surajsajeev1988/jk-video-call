@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.jkfamily.videocall",
+    "sha256_cert_fingerprints": ["8D:DE:8C:64:D0:27:6A:1F:44:75:ED:3C:1A:0F:CA:A2:37:43:1A:89:12:1F:45:5A:3B:2A:6D:C7:9F:07:49:E6"]
+  }
+}]

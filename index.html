@@ -833,6 +833,8 @@ body.tv-matrix{--ink:#c8ffd4;--dim:#5fd47a;--faint:#3a8a4c;--edge:rgba(0,255,90,
   --t-glow:0 0 10px rgba(0,255,90,.35);--t-r:4px;--t-gloss:0;--t-read:#3dff7f;
   --t-font:"Courier New",ui-monospace,monospace}
 .thsurprise{display:flex;gap:8px}
+.thscheme{display:flex;gap:4px;padding:4px;border-radius:999px}
+.thscheme button{flex:1;padding:9px 4px;border-radius:999px;font-weight:600;font-size:14px}
 .thsurprise button{flex:1;padding:11px}
 .help ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:14.5px;line-height:1.4}
 .help a{color:#53bdeb;word-break:break-all}
@@ -1046,7 +1048,19 @@ function beep(freqs, dur, vol = 0.12, type = 'sine', when = 0) {
 function stopTone() { clearInterval(toneT); toneT = 0; if (navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) navigator.vibrate(0); }
 function ringback() { stopTone(); const r = () => beep([440, 480], 1.6, 0.07); r(); toneT = setInterval(r, 4000); }
 /* one piano-like note: a few harmonics that each fade out, the higher ones faster */
-function piano(freq, when, dur = 1.2, vol = 0.22) {
+/* the ringtone goes through a loud bus: boosted, then limited so it is as loud as it can be without crackling */
+let ringBus = null;
+function loudBus() {
+  const a = audio(); if (!a) return null;
+  if (!ringBus) {
+    const g = a.createGain(), c = a.createDynamicsCompressor();
+    g.gain.value = 3.5;
+    c.threshold.value = -6; c.knee.value = 0; c.ratio.value = 20; c.attack.value = 0.002; c.release.value = 0.08;
+    g.connect(c); c.connect(a.destination); ringBus = g;
+  }
+  return ringBus;
+}
+function piano(freq, when, dur = 1.2, vol = 0.22, out = null) {
   const a = audio(); if (!a) return;
   const t0 = a.currentTime + when;
   [[1, 1], [2, 0.45], [3, 0.22], [4, 0.1]].forEach(([h, g]) => {
@@ -1054,17 +1068,19 @@ function piano(freq, when, dur = 1.2, vol = 0.22) {
     o.type = 'sine'; o.frequency.value = freq * h;
     gn.gain.setValueAtTime(0, t0); gn.gain.linearRampToValueAtTime(vol * g, t0 + 0.008);
     gn.gain.exponentialRampToValueAtTime(0.0001, t0 + dur / (1 + (h - 1) * 0.5));
-    o.connect(gn); gn.connect(a.destination); o.start(t0); o.stop(t0 + dur + 0.05);
+    o.connect(gn); gn.connect(out || a.destination); o.start(t0); o.stop(t0 + dur + 0.05);
   });
 }
 const canBuzz = () => navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive);
 function ringtone() {
   stopTone();
+  try { if (window.jkDesktop) window.jkDesktop.ring(); } catch (e) {}   // desktop app: bring the window up from the tray
   const N = { C4: 261.63, E4: 329.63, G4: 392, E5: 659.25, G5: 783.99, A5: 880, C6: 1046.5, D6: 1174.66, E6: 1318.51 };
   const tune = [['E5', 0], ['G5', 0.2], ['C6', 0.4], ['E6', 0.6], ['D6', 0.95], ['C6', 1.15], ['A5', 1.4], ['C6', 1.6], ['E6', 1.8], ['G5', 2.2]];
   const r = () => {
-    tune.forEach(([n, at]) => piano(N[n], at));
-    piano(N.C4, 0, 1.9, 0.16); piano(N.G4, 0.6, 1.5, 0.1); piano(N.E4, 1.4, 1.8, 0.14);
+    const bus = loudBus();
+    tune.forEach(([n, at]) => piano(N[n], at, 1.2, 0.22, bus));
+    piano(N.C4, 0, 1.9, 0.16, bus); piano(N.G4, 0.6, 1.5, 0.1, bus); piano(N.E4, 1.4, 1.8, 0.14, bus);
     if (canBuzz()) navigator.vibrate([500, 250, 500, 250, 500]);
   };
   r(); toneT = setInterval(r, 3200);
@@ -1326,23 +1342,218 @@ const THEME_LIST = [
   { id: 'tv-berry', name: 'Berry Smoothie', p: ['linear-gradient(180deg,#5a0f3e,#14030e)', 'rgba(60,12,44,.95)', 'linear-gradient(135deg,#c2185b,#7b1fa2)'], c: '#2c0820' },
   { id: 'tv-matrix', name: 'Hacker Green', p: ['repeating-linear-gradient(0deg,rgba(0,255,90,.15) 0 1px,transparent 1px 4px),#020a04', '#061d0e', '#0a3a1a'], c: '#020a04' }
 ];
+/* ---------- 76 more themes, worked out from a few colours each ---------- */
+// [id, name, mode (d = dark, l = light), background top, background bottom, accent 1, accent 2, pattern]
+const THEME_SEEDS = [
+  ['deepspace', 'Deep Space', 'd', '#070b1f', '#1a1240', '#7c6cff', '#00d4ff', 'stars'],
+  ['aurora', 'Northern Lights', 'd', '#04141c', '#0b2a3a', '#3dffb0', '#7a5cff', 'glow'],
+  ['emerald', 'Emerald Night', 'd', '#03140e', '#0a2a1d', '#2ee59d', '#c7f464', 'glow'],
+  ['ruby', 'Ruby Night', 'd', '#1a0509', '#33091a', '#ff3d6e', '#ff9f43', 'glow'],
+  ['sapphire', 'Sapphire', 'd', '#050d24', '#0d1f4d', '#3d7bff', '#6fd3ff', 'glow'],
+  ['amethyst', 'Amethyst', 'd', '#120720', '#26103f', '#b06bff', '#ff7ad9', 'glow'],
+  ['obsidian', 'Obsidian', 'd', '#08080a', '#16161c', '#9aa4b8', '#e0e6f0', ''],
+  ['volcano', 'Volcano', 'd', '#160603', '#2e0d05', '#ff6a00', '#ffcc33', 'glow'],
+  ['storm', 'Thunderstorm', 'd', '#0b0f17', '#1c2433', '#8fb3ff', '#fff36b', 'stripes'],
+  ['deepsea', 'Deep Sea', 'd', '#011219', '#032a3a', '#00c2c7', '#3df5a8', 'dots'],
+  ['junglenight', 'Jungle Night', 'd', '#06140a', '#10301a', '#6bd66b', '#ffd23f', 'dots'],
+  ['plum', 'Plum', 'd', '#170a17', '#331433', '#e07be0', '#ffb3e6', ''],
+  ['wine', 'Red Wine', 'd', '#170509', '#2f0a14', '#d9466f', '#f7b267', ''],
+  ['chocomint', 'Choc Mint', 'd', '#1a110c', '#2b1d15', '#4fe3c1', '#a8ffe4', 'dots'],
+  ['slate', 'Slate', 'd', '#111418', '#22272e', '#7fd1b9', '#a3b8ff', ''],
+  ['neonpink', 'Neon Pink', 'd', '#0d0510', '#1d0a24', '#ff2fa0', '#ff8ae2', 'grid'],
+  ['neonblue', 'Neon Blue', 'd', '#03091a', '#081633', '#1fb6ff', '#7df9ff', 'grid'],
+  ['lime', 'Electric Lime', 'd', '#070d05', '#12210c', '#a6ff00', '#00ffa3', 'grid'],
+  ['cyberpurple', 'Cyber Purple', 'd', '#0a0618', '#170d33', '#9d4dff', '#00f0ff', 'grid'],
+  ['moonlight', 'Moonlight', 'd', '#0a0f1e', '#1a2440', '#c9d6ff', '#ffe9a8', 'stars'],
+  ['eclipse', 'Eclipse', 'd', '#050505', '#1a1206', '#ffb000', '#ff5e00', 'glow'],
+  ['dragon', 'Dragon', 'd', '#0b1408', '#2a0c0c', '#ff4d2e', '#59e35b', 'stripes'],
+  ['phoenix', 'Phoenix', 'd', '#1a0700', '#3a1200', '#ff8c1a', '#ffd84d', 'glow'],
+  ['tiger', 'Tiger', 'd', '#140a02', '#2a1505', '#ff9a1f', '#ffe066', 'stripes'],
+  ['panther', 'Panther', 'd', '#050507', '#121218', '#c084fc', '#f0abfc', ''],
+  ['wolf', 'Wolf Moon', 'd', '#0b0e14', '#1b2130', '#9fb4d0', '#e6eefc', 'stars'],
+  ['blackcherry', 'Black Cherry', 'd', '#12030a', '#280818', '#e0245e', '#ff7aa8', ''],
+  ['bluesteel', 'Blue Steel', 'd', '#0c1219', '#1b2836', '#5aa9e6', '#b8e0ff', ''],
+  ['copper', 'Copper', 'd', '#120b07', '#24160e', '#e08a4f', '#ffcf99', 'glow'],
+  ['tealnight', 'Teal Night', 'd', '#031516', '#072c2e', '#19d3c5', '#a2fff4', ''],
+  ['indigo', 'Indigo', 'd', '#0a0a24', '#17174a', '#6e6bff', '#b3b1ff', 'glow'],
+  ['pine', 'Pine Forest', 'd', '#06110c', '#0f2419', '#3fbf7f', '#d4f5a3', 'dots'],
+  ['blackberry', 'Blackberry', 'd', '#0f0716', '#1f0f2e', '#8e5bd6', '#e18cff', 'dots'],
+  ['firefly', 'Firefly', 'd', '#050a08', '#0c1a14', '#f6ff6b', '#8dff9c', 'stars'],
+  ['rocket', 'Space Rocket', 'd', '#0b0b1f', '#1d1d40', '#ff5f5f', '#ffd166', 'stars'],
+  ['pirate', 'Pirate Ship', 'd', '#0c0f14', '#20262f', '#e6c069', '#ff6b6b', 'stripes'],
+  ['robot', 'Robot', 'd', '#0d1114', '#1e262c', '#3de0ff', '#b6ff3d', 'grid'],
+  ['superhero', 'Superhero', 'd', '#0a0f2e', '#1a0a2e', '#ff3b3b', '#3b82ff', 'stripes'],
+  ['arctic', 'Arctic Night', 'd', '#06121c', '#0e2638', '#7fe7ff', '#e0fbff', 'stars'],
+  ['peach', 'Peach', 'l', '#fff1e8', '#ffd9c4', '#ff8a5c', '#ff5e7e', ''],
+  ['apricot', 'Apricot', 'l', '#fff6ec', '#ffe2c2', '#f59e0b', '#ea580c', 'dots'],
+  ['lavender', 'Lavender', 'l', '#f6f1ff', '#e6dbff', '#9b7bff', '#6a4cff', 'dots'],
+  ['lilac', 'Lilac', 'l', '#fbf2ff', '#efd9ff', '#c26bff', '#8b3dff', ''],
+  ['rose', 'Rose Garden', 'l', '#fff0f3', '#ffd6df', '#ff4d79', '#c9184a', 'dots'],
+  ['coral', 'Coral Reef', 'l', '#fff3ef', '#ffd8cc', '#ff6f59', '#00a6a6', 'dots'],
+  ['mango', 'Mango', 'l', '#fff8e6', '#ffe8a8', '#ffa41b', '#ff6b00', ''],
+  ['banana', 'Banana', 'l', '#fffdea', '#fff3a6', '#f2c200', '#8a6d00', 'dots'],
+  ['kiwi', 'Kiwi', 'l', '#f3ffe8', '#ddf7c2', '#6bbf2a', '#2f7d12', 'dots'],
+  ['limesoda', 'Lime Soda', 'l', '#f4ffef', '#dcffd0', '#38d430', '#00a86b', 'stripes'],
+  ['watermelon', 'Watermelon', 'l', '#fff1f1', '#e6f9e0', '#ff4f6d', '#2fbf71', 'dots'],
+  ['bubblegum', 'Bubblegum', 'l', '#fff0fa', '#ffd6f1', '#ff5fc4', '#a24dff', 'dots'],
+  ['cottoncandy', 'Cotton Candy', 'l', '#f2f6ff', '#ffe4f5', '#ff8dc7', '#7aa7ff', ''],
+  ['vanilla', 'Vanilla', 'l', '#fffdf6', '#f7efd9', '#c9a227', '#8c6a00', ''],
+  ['honey', 'Honey', 'l', '#fff9e8', '#ffe9b0', '#f0a500', '#b06d00', 'dots'],
+  ['berrycream', 'Berries & Cream', 'l', '#fffaf3', '#f5ead8', '#d6336c', '#7a1f4a', ''],
+  ['sanddune', 'Sand Dune', 'l', '#fbf4e8', '#efdcbc', '#d9a05b', '#e8bf7a', 'stripes'],
+  ['seashell', 'Seashell', 'l', '#fff8f4', '#fde4d8', '#f08c7a', '#3f8fa8', ''],
+  ['pearl', 'Pearl', 'l', '#fbfbfd', '#ececf3', '#8a8fb3', '#4b4f75', ''],
+  ['cloud', 'Cloud Nine', 'l', '#f4f9ff', '#e1efff', '#5ca8ff', '#2a6fdb', ''],
+  ['snow', 'Snowflake', 'l', '#fafdff', '#e8f4fb', '#49a6d9', '#1b6d99', 'dots'],
+  ['aqua', 'Aqua', 'l', '#eefdff', '#c9f4fb', '#00b8d9', '#0077b6', 'dots'],
+  ['lagoon', 'Lagoon', 'l', '#ecfffb', '#c4f3ea', '#14b8a6', '#0e7490', ''],
+  ['spring', 'Spring Meadow', 'l', '#f5fff0', '#e2f7d6', '#74c365', '#f7a6c1', 'dots'],
+  ['tulip', 'Tulip', 'l', '#fff4f6', '#ffe0e8', '#ff5d8f', '#3fa34d', ''],
+  ['sunflower', 'Sunflower', 'l', '#fffbe6', '#fff0a8', '#ffc300', '#ffdb4d', 'dots'],
+  ['daisy', 'Daisy', 'l', '#fffff4', '#f3f8e6', '#f5c518', '#5a8f29', ''],
+  ['marigold', 'Marigold', 'l', '#fff6e6', '#ffdca8', '#ff9f1c', '#c2410c', 'dots'],
+  ['butterfly', 'Butterfly', 'l', '#f7f3ff', '#ffeef7', '#8b5cf6', '#ec4899', ''],
+  ['sherbet', 'Rainbow Sherbet', 'l', '#fff3ec', '#fff0fb', '#ff7f50', '#9b5de5', 'stripes'],
+  ['pistachio', 'Pistachio', 'l', '#f7fbef', '#e3f0cf', '#93c572', '#4f7a2a', ''],
+  ['sage', 'Sage', 'l', '#f4f7f3', '#dfe8dc', '#7c9a7e', '#3e5c43', ''],
+  ['linen', 'Linen', 'l', '#fbf7f1', '#efe6d8', '#a67c52', '#5c3d1e', ''],
+  ['sunrise', 'Sunrise', 'l', '#fff6ea', '#ffd9d0', '#ff7a59', '#ffb627', ''],
+  ['unicorn', 'Unicorn', 'l', '#fdf4ff', '#e9f6ff', '#f472b6', '#818cf8', 'dots'],
+  ['dinosaur', 'Dinosaur', 'l', '#f2fbe9', '#dff3cc', '#4caf50', '#ff9800', 'dots'],
+  ['mermaid', 'Mermaid', 'l', '#effcfb', '#e7ecff', '#14b8a6', '#a855f7', '']
+];
+/* colour helpers for the generated themes */
+const tcRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const tcHex = c => '#' + c.map(v => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join('');
+const tcMix = (a, b, t) => { const x = tcRgb(a), y = tcRgb(b); return tcHex(x.map((v, i) => v + (y[i] - v) * t)); };
+const tcRgba = (h, a) => 'rgba(' + tcRgb(h).join(',') + ',' + a + ')';
+const tcLum = h => { const [r, g, b] = tcRgb(h).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+const tcContrast = (a, b) => { const x = tcLum(a), y = tcLum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+// nudge a colour toward white or black until it reads well on every background given
+const tcEnsure = (fg, bgs, min, toward) => { let c = fg; for (let t = 0; t <= 1.001 && bgs.some(b => tcContrast(c, b) < min); t += 0.05) c = tcMix(fg, toward, t); return c; };
+/* the other half of a theme: the same accents on a dark (or light) background built from them */
+function altSeed(slug, name, mode, a1, a2, pat) {
+  if (mode === 'd') {
+    const b1 = tcMix(a1, '#000000', 0.9), b2 = tcMix(a2, '#000000', 0.84);
+    return [slug, name, 'd', b1, b2, tcEnsure(a1, [b1, b2], 3.2, '#ffffff'), tcEnsure(a2, [b1, b2], 3.2, '#ffffff'), pat];
+  }
+  const b1 = tcMix(a1, '#ffffff', 0.92), b2 = tcMix(a2, '#ffffff', 0.84);
+  return [slug, name, 'l', b1, b2, tcEnsure(a1, [b1, b2], 1.8, '#000000'), tcEnsure(a2, [b1, b2], 1.8, '#000000'), pat];
+}
+function genThemes(seeds) {
+  const mix = tcMix, rgba = tcRgba, contrast = tcContrast, ensure = tcEnsure;
+  const css = [], list = [];
+  seeds.forEach(([slug, name, mode, b1, b2, a1, a2, pat], i) => {
+    const dark = mode === 'd', id = 'tv-' + slug, bgs = [b1, b2, mix(b1, b2, 0.5)];
+    const ink = dark ? ensure(mix('#ffffff', a1, 0.06), bgs, 12, '#ffffff') : ensure(mix('#15151f', a2, 0.25), bgs, 11, '#000000');
+    const dim = ensure(mix(ink, b1, 0.32), bgs, 5, dark ? '#ffffff' : '#000000');
+    const faint = ensure(mix(ink, b1, 0.5), bgs, 3, dark ? '#ffffff' : '#000000');
+    const minC = fg => Math.min(contrast(fg, a1), contrast(fg, a2));
+    const onAcc = minC('#ffffff') >= 3 || minC('#ffffff') >= minC('#141414') ? '#ffffff' : '#141414';   // white or near-black, whichever reads better on the buttons
+    const accText = ensure(dark ? mix(a1, '#ffffff', 0.25) : mix(a2, '#000000', 0.2), bgs, 4.5, dark ? '#ffffff' : '#000000');
+    const m1 = dark ? mix(a1, '#000000', 0.4) : mix(a1, '#ffffff', 0.62), m2 = dark ? mix(a2, '#000000', 0.45) : mix(a2, '#ffffff', 0.62);
+    const onMine = dark ? ensure('#ffffff', [m1, m2], 4.5, '#ffffff') : ensure(ink, [m1, m2], 4.5, '#000000');
+    const mineOk = contrast(onMine, m1) >= 4.5 && contrast(onMine, m2) >= 4.5;
+    const mine1 = mineOk ? m1 : mix(m1, dark ? '#000000' : '#ffffff', 0.4), mine2 = mineOk ? m2 : mix(m2, dark ? '#000000' : '#ffffff', 0.4);
+    const them = dark ? mix(b1, '#ffffff', 0.08) : '#ffffff';
+    const p = rgba(a1, dark ? 0.12 : 0.14);
+    const layer = pat === 'stars' ? 'radial-gradient(1.3px 1.3px at 14px 18px,#fff 50%,transparent 52%) 0 0/86px 86px,radial-gradient(1px 1px at 52px 64px,' + mix(a2, '#ffffff', 0.5) + ' 50%,transparent 52%) 0 0/120px 120px,'
+      : pat === 'dots' ? 'radial-gradient(' + p + ' 2px,transparent 2.6px) 0 0/24px 24px,'
+      : pat === 'grid' ? 'linear-gradient(' + rgba(a1, 0.09) + ' 1px,transparent 1px) 0 0/26px 26px,linear-gradient(90deg,' + rgba(a2, 0.07) + ' 1px,transparent 1px) 0 0/26px 26px,'
+      : pat === 'stripes' ? 'repeating-linear-gradient(45deg,' + rgba(a1, 0.06) + ' 0 12px,transparent 12px 24px),'
+      : pat === 'glow' ? 'radial-gradient(70% 45% at 50% 0%,' + rgba(a1, 0.3) + ',transparent 70%),' : '';
+    const v = {
+      '--ink': ink, '--dim': dim, '--faint': faint, '--edge': rgba(a1, 0.3),
+      '--t-bg': layer + 'linear-gradient(180deg,' + b1 + ',' + b2 + ')',
+      '--t-panel': dark ? rgba(mix(b1, '#000000', 0.2), 0.88) : 'rgba(255,255,255,.86)',
+      '--t-card': dark ? rgba(mix(b2, a1, 0.18), 0.55) : 'rgba(255,255,255,.68)',
+      '--t-line': rgba(a1, dark ? 0.3 : 0.32),
+      '--t-acc': 'linear-gradient(135deg,' + a1 + ',' + a2 + ')', '--t-on-acc': onAcc, '--t-acc-text': accText,
+      '--t-mine': 'linear-gradient(135deg,' + mine1 + ',' + mine2 + ')', '--t-on-mine': onMine, '--t-them': them,
+      '--t-glow': dark ? '0 0 14px ' + rgba(a1, 0.3) : '0 6px 16px ' + rgba(a2, 0.16),
+      '--t-r': [16, 20, 22, 18][i % 4] + 'px', '--t-read': dark ? ensure(mix(a2, '#ffffff', 0.3), [mine1, mine2], 3, '#ffffff') : '#1565c0'
+    };
+    if (!dark) Object.assign(v, { '--t-callbg': 'linear-gradient(170deg,' + mix(a1, '#000000', 0.25) + ',' + mix(a2, '#000000', 0.55) + ')', '--t-modal': rgba(mix(b1, '#ffffff', 0.3), 0.6), '--t-gloss': '.8' });
+    css.push('body.' + id + '{' + Object.entries(v).map(([k, x]) => k + ':' + x).join(';') + '}');
+    list.push({ id, name, mode, p: ['linear-gradient(180deg,' + b1 + ',' + b2 + ')', them, 'linear-gradient(135deg,' + mine1 + ',' + mine2 + ')'], c: b1 });
+  });
+  return { css: css.join('\n'), list };
+}
+/* the Claude theme: warm cream and terracotta by day, warm charcoal by night */
+const CLAUDE_CSS = `
+body.tv-claude{--ink:#141413;--dim:#5e5d59;--faint:#87867f;--edge:rgba(20,20,19,.14);
+  --t-font:ui-serif,Georgia,"Times New Roman",serif;
+  --t-bg:linear-gradient(180deg,#faf9f5,#f0eee6);--t-callbg:linear-gradient(170deg,#3a3936,#1f1e1d);
+  --t-panel:rgba(255,255,255,.92);--t-card:#ffffff;--t-line:rgba(31,30,29,.13);
+  --t-acc:#c96442;--t-on-acc:#ffffff;--t-acc-text:#a3462a;
+  --t-mine:#ebe7dc;--t-on-mine:#141413;--t-them:#ffffff;
+  --t-glow:0 1px 3px rgba(31,30,29,.1);--t-r:14px;--t-modal:rgba(240,238,230,.72);--t-gloss:0;--t-read:#a3462a}
+body.tv-claude-alt{--ink:#faf9f5;--dim:#c2c0b6;--faint:#9a988f;--edge:rgba(250,249,245,.13);
+  --t-font:ui-serif,Georgia,"Times New Roman",serif;
+  --t-bg:linear-gradient(180deg,#262624,#1f1e1d);
+  --t-panel:rgba(48,48,46,.95);--t-card:#30302e;--t-line:rgba(250,249,245,.1);
+  --t-acc:#c96442;--t-on-acc:#ffffff;--t-acc-text:#e2896a;
+  --t-mine:#3d3b37;--t-on-mine:#faf9f5;--t-them:#30302e;
+  --t-glow:0 1px 3px rgba(0,0,0,.35);--t-r:14px;--t-gloss:0;--t-read:#e2896a}`;
+const CLAUDE = { id: 'tv-claude', name: 'Claude', mode: 'l', alt: 'tv-claude-alt', p: ['linear-gradient(180deg,#faf9f5,#f0eee6)', '#ffffff', '#ebe7dc'], c: '#faf9f5' };
+const CLAUDE_ALT = { id: 'tv-claude-alt', name: 'Claude', mode: 'd', p: ['linear-gradient(180deg,#262624,#1f1e1d)', '#30302e', '#3d3b37'], c: '#262624' };
+/* the hand-made themes' other halves: [their mode, the other half's accents and pattern] */
+const HAND_ALTS = {
+  'classic': ['d', '#25d366', '#00a884', ''], 'th-j': ['d', '#7b2cff', '#ff4fd8', 'dots'], 'th-k': ['l', '#ff8fc8', '#ff5fa2', 'dots'],
+  'th-s': ['d', '#1fa855', '#075e54', ''], 'th-t': ['d', '#e8a49c', '#c27a86', ''], 'tv-ocean': ['d', '#00b8d9', '#2979ff', 'dots'],
+  'tv-sunset': ['d', '#ff7a45', '#e8336b', ''], 'tv-forest': ['d', '#3f8f4f', '#2e6b3f', 'dots'], 'tv-galaxy': ['d', '#7c4dff', '#0288d1', 'dots'],
+  'tv-candy': ['l', '#ff7eb6', '#a78bfa', 'dots'], 'tv-lemon': ['l', '#ffd43b', '#ff922b', 'dots'], 'tv-gold': ['d', '#cba135', '#8a6514', ''],
+  'tv-ice': ['l', '#9ad8ff', '#3f9ae6', 'stars'], 'tv-lava': ['d', '#ff3d00', '#c60000', ''], 'tv-nature': ['l', '#8fd16a', '#3f8f4f', 'dots'],
+  'tv-arcade': ['d', '#ff2bd6', '#00b8d4', 'grid'], 'tv-rainbow': ['l', '#ff5f6d', '#3fa9ff', 'stars'], 'tv-blossom': ['l', '#ff9ec4', '#e05a8a', 'dots'],
+  'tv-mint': ['l', '#5ef0c0', '#14a37c', ''], 'tv-sky': ['l', '#5cb8ff', '#1f6fe0', 'stars'], 'tv-desert': ['l', '#f0a35e', '#c5652a', 'stripes'],
+  'tv-paper': ['l', '#9aa4b8', '#e0e6f0', ''], 'tv-coffee': ['d', '#a8703f', '#6b4428', ''], 'tv-royal': ['d', '#6a2fc2', '#8a4fd8', ''],
+  'tv-midnight': ['d', '#4c8dff', '#2a4f9a', ''], 'tv-peacock': ['d', '#0f8f86', '#1e45b8', 'dots'], 'tv-berry': ['d', '#c2185b', '#7b1fa2', ''],
+  'tv-matrix': ['d', '#00a845', '#006b2c', 'grid']
+};
+const THEME_ALTS = {};   // id -> its other half
+{
+  const opp = m => (m === 'd' ? 'l' : 'd');
+  // the 76 one-line themes and their other halves
+  const main = genThemes(THEME_SEEDS);
+  const others = genThemes(THEME_SEEDS.map(([slug, name, mode, b1, b2, a1, a2, pat]) => altSeed(slug + '-alt', name, opp(mode), a1, a2, pat)));
+  main.list.forEach((x, i) => { x.alt = others.list[i].id; THEME_ALTS[x.id] = others.list[i]; });
+  // the hand-made themes' other halves
+  const hand = Object.entries(HAND_ALTS);
+  const handAlts = genThemes(hand.map(([id, [mode, a1, a2, pat]]) => altSeed(id.replace(/^tv-/, '').replace('-', '') + '-alt', '', opp(mode), a1, a2, pat)));
+  hand.forEach(([id, [mode]], i) => { const t = THEME_LIST.find(x => x.id === id); if (t) { t.mode = mode; t.alt = handAlts.list[i].id; THEME_ALTS[id] = handAlts.list[i]; } });
+  THEME_ALTS[CLAUDE.id] = CLAUDE_ALT;
+  const st = document.createElement('style');
+  st.id = 'genThemes'; st.textContent = [CLAUDE_CSS, main.css, others.css, handAlts.css].join('\n'); document.head.appendChild(st);
+  THEME_LIST.splice(1, 0, CLAUDE);   // right after Classic
+  THEME_LIST.push(...main.list);
+}
+/* light or dark: follow the phone (Auto), or always one of them */
+const darkMQ = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
+const schemePref = () => { const v = store.get('scheme', 'auto'); return ['auto', 'light', 'dark'].includes(v) ? v : 'auto'; };
+const wantMode = () => { const v = schemePref(); return v === 'auto' ? (darkMQ && darkMQ.matches ? 'd' : 'l') : v.charAt(0); };
+/* the half of a theme that is showing now */
+const themeShown = th => (th.alt && th.mode && th.mode !== wantMode() && THEME_ALTS[th.id]) || th;
 const PERSONAL = { '2017': 'th-j', '2019': 'th-k', '1988': 'th-s', '1989': 'th-t' };   // each person's starting theme
 const themeAllowed = x => !x.own || (me && x.own === me.num);
 const defaultTheme = () => (me && PERSONAL[me.num]) || 'classic';
 const currentTheme = () => { const id = store.get('theme', null); return THEME_LIST.some(x => x.id === id && themeAllowed(x)) ? id : defaultTheme(); };
 function applyThemeId(id) {
-  const th = THEME_LIST.find(x => x.id === id) || THEME_LIST[0];
+  const th = themeShown(THEME_LIST.find(x => x.id === id) || THEME_LIST[0]);
   const b = document.body.classList;
-  THEME_LIST.forEach(x => b.remove(x.id)); b.remove('tv');
+  THEME_LIST.forEach(x => b.remove(x.id)); Object.values(THEME_ALTS).forEach(x => b.remove(x.id)); b.remove('tv');
   if (th.id.startsWith('tv-')) { b.add('tv'); b.add(th.id); } else if (th.id !== 'classic') b.add(th.id);
   const m = document.querySelector('meta[name=theme-color]'); if (m) m.setAttribute('content', th.c);
 }
+// the phone switched between light and dark: switch the theme's half to match
+if (darkMQ) { const re = () => { if (me) applyThemeId(currentTheme()); }; if (darkMQ.addEventListener) darkMQ.addEventListener('change', re); else if (darkMQ.addListener) darkMQ.addListener(re); }
 function openThemes() {
   const cur = currentTheme();
-  modal(`<h3>Theme</h3><div class="note">Pick a look for ${esc(me.name)}. It's saved with your account. <b>Your own</b> theme belongs to you alone — nobody else can choose it.</div>
-    <div class="thgrid" id="thGrid">${THEME_LIST.filter(themeAllowed).map(x => `<button type="button" class="thsw ${x.id === cur ? 'on' : ''}" data-th="${x.id}">
-      <span class="thprev" style="background:${x.p[0]}"><i style="background:${x.p[1]}"></i><i style="background:${x.p[2]}"></i></span>
-      <b>${esc(x.name)}</b>${x.own ? '<small>Your own</small>' : ''}</button>`).join('')}</div>
+  modal(`<h3>Theme</h3><div class="note">Pick one of ${THEME_LIST.filter(themeAllowed).length} looks for ${esc(me.name)}. It's saved with your account. <b>Your own</b> theme belongs to you alone — nobody else can choose it.</div>
+    <div class="seg thscheme" id="thScheme">${[['auto', '🌗 Auto'], ['light', '☀️ Light'], ['dark', '🌙 Dark']].map(([k, t]) => `<button type="button" data-sc="${k}" class="${schemePref() === k ? 'on' : ''}">${t}</button>`).join('')}</div>
+    <div class="note" style="margin-top:-4px">Auto follows the phone: in dark mode every theme turns dark, and light in light mode.</div>
+    <div class="thgrid" id="thGrid">${THEME_LIST.filter(themeAllowed).map(x => { const v = themeShown(x); return `<button type="button" class="thsw ${x.id === cur ? 'on' : ''}" data-th="${x.id}">
+      <span class="thprev" style="background:${v.p[0]}"><i style="background:${v.p[1]}"></i><i style="background:${v.p[2]}"></i></span>
+      <b>${esc(x.name)}</b>${x.own ? '<small>Your own</small>' : ''}</button>`; }).join('')}</div>
     <div class="thsurprise"><button class="gloss g-glass" id="thRand">🎲 Surprise me</button><button class="gloss g-glass" id="thClose">Close</button></div>`);
   $('thClose').onclick = closeModal;
   const pick = b => {
@@ -1351,6 +1562,12 @@ function openThemes() {
     blip();
   };
   $('thGrid').onclick = e => { const b = e.target.closest('[data-th]'); if (b) pick(b); };
+  $('thScheme').onclick = e => {
+    const b = e.target.closest('[data-sc]'); if (!b) return;
+    store.set('scheme', b.dataset.sc); blip();
+    const top = $('sheet').scrollTop; openThemes(); $('sheet').scrollTop = top;   // redraw the previews in the new half
+    applyThemeId(currentTheme());
+  };
   $('thRand').onclick = () => {
     const bs = [...$('thGrid').querySelectorAll('.thsw:not(.on)')]; if (!bs.length) return;
     const b = bs[Math.floor(Math.random() * bs.length)]; pick(b); b.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -1829,11 +2046,13 @@ async function clearNotif(tag) {
 function renderNotifBar() {
   const b = $('notifBar'); if (!b) return;
   let mode = '';
-  if (me && isIOS && !standalone && !('Notification' in window)) mode = 'ios';
+  if (me && isIOS && window.Capacitor && !('Notification' in window)) mode = 'iosapp';
+  else if (me && isIOS && !standalone && !('Notification' in window)) mode = 'ios';
   else if (me && canSW && 'Notification' in window && Notification.permission === 'default') mode = 'ask';
   else if (me && canSW && 'Notification' in window && Notification.permission === 'denied') mode = 'blocked';
   b.classList.toggle('hidden', !mode);
-  if (mode === 'ios') b.innerHTML = '<span>🔔 For call notifications on iPhone: tap Share, choose <b>Add to Home Screen</b>, then open the app from that icon.</span>';
+  if (mode === 'iosapp') b.innerHTML = '<span>🔔 This iPhone app can\'t ring when it\'s closed. For calls that ring, open <b>' + HOME_URL.replace('https://', '') + '</b> in Safari, tap Share, choose <b>Add to Home Screen</b>, and use that icon instead.</span>';
+  else if (mode === 'ios') b.innerHTML = '<span>🔔 For call notifications on iPhone: tap Share, choose <b>Add to Home Screen</b>, then open the app from that icon.</span>';
   else if (mode === 'blocked') b.innerHTML = '<span>🔕 Notifications are blocked, so calls cannot reach this phone when the app is closed. Open the browser\'s site settings for this page and allow Notifications.</span>';
   else if (mode === 'ask') {
     b.innerHTML = '<span>🔔 Turn on notifications so calls and messages reach you when the app is closed.</span><button class="gloss g-green" id="nbOn">Turn on</button>';
