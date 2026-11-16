@@ -873,7 +873,7 @@ body.tv-matrix{--ink:#c8ffd4;--dim:#5fd47a;--faint:#3a8a4c;--edge:rgba(0,255,90,
 .dotsGrid .box.a{background:rgba(229,57,53,.22)}.dotsGrid .box.b{background:rgba(30,136,229,.22)}
 .dotsScore{font-weight:800;font-size:14px}
 .oddGrid{display:grid;gap:6px;width:min(88vw,340px)}
-.oddGrid button{aspect-ratio:1;border-radius:12px;background:rgba(127,127,127,.15);line-height:1;padding:0}
+.oddGrid button{aspect-ratio:1;border-radius:12px;background:rgba(127,127,127,.15);line-height:1;padding:0;overflow:hidden;min-width:0}
 .oddGrid button.found{background:#43a047}.oddGrid button.miss{animation:cardshake .3s}
 .typeWord{font-size:38px;font-weight:900;letter-spacing:1px;min-height:48px}
 .typeWord .ok{color:#2e7d32}.typeWord .bad{color:#e53935}
@@ -2944,8 +2944,8 @@ function oddGame() {
     const n = Math.min(7, 3 + Math.floor(score / 3)), pair = ODD_PAIRS[Math.floor(Math.random() * ODD_PAIRS.length)], flip = Math.random() < 0.5;
     const [main, other] = flip ? [pair[1], pair[0]] : pair;
     odd = Math.floor(Math.random() * n * n);
-    $('odGrid').style.gridTemplateColumns = `repeat(${n},1fr)`;
-    $('odGrid').innerHTML = Array.from({ length: n * n }, (_, i) => `<button type="button" data-i="${i}" style="font-size:${Math.floor(260 / n)}px">${i === odd ? other : main}</button>`).join('');
+    $('odGrid').style.gridTemplateColumns = `repeat(${n},minmax(0,1fr))`;
+    $('odGrid').innerHTML = Array.from({ length: n * n }, (_, i) => `<button type="button" data-i="${i}" style="font-size:${Math.floor(200 / n)}px">${i === odd ? other : main}</button>`).join('');
   }
   function start() {
     score = 0; live = true; t0 = Date.now(); $('arcScore').textContent = '0'; $('odGo').classList.add('hidden'); round();
