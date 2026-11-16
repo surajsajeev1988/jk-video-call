@@ -872,6 +872,26 @@ body.tv-matrix{--ink:#c8ffd4;--dim:#5fd47a;--faint:#3a8a4c;--edge:rgba(0,255,90,
 .dotsGrid .box{display:grid;place-items:center;font-style:normal;font-size:24px;border-radius:6px}
 .dotsGrid .box.a{background:rgba(229,57,53,.22)}.dotsGrid .box.b{background:rgba(30,136,229,.22)}
 .dotsScore{font-weight:800;font-size:14px}
+/* number grid */
+.ngrid{display:grid;grid-template-columns:repeat(4,1fr);width:min(80vw,300px);border:3px solid var(--ink);border-radius:12px;overflow:hidden}
+.ngrid button{aspect-ratio:1;font-size:clamp(22px,8vw,34px);font-weight:900;background:rgba(127,127,127,.08);border:1px solid rgba(127,127,127,.35);border-radius:0;color:var(--ink);padding:0}
+.ngrid button:nth-child(4n+2){border-right:3px solid var(--ink)}
+.ngrid button:nth-child(n+5):nth-child(-n+8){border-bottom:3px solid var(--ink)}
+.ngrid button.given{background:rgba(127,127,127,.25)}
+.ngrid button.sel{background:var(--t-acc,#00a884);color:var(--t-on-acc,#fff)}
+.ngrid button.bad{color:#e53935}
+.ngrid button.solved{background:#c8e6c9;color:#1b5e20}
+.npad{display:flex;gap:8px}
+.npad button{width:56px;height:52px;border-radius:14px;background:rgba(127,127,127,.22);font-size:24px;font-weight:900}
+/* stickers */
+.stickers{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stickers button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:14px;background:rgba(127,127,127,.15)}
+.stickers .av{width:64px;height:64px}
+.stickers b{font-size:13px}
+/* daily challenge card */
+.daily{width:100%;max-width:360px;padding:14px 16px;border-radius:18px;background:var(--t-acc,#00a884);color:var(--t-on-acc,#fff);font-weight:700;display:flex;flex-direction:column;gap:4px;text-align:left}
+.daily small{font-weight:600;opacity:.9}
+.daily.done{background:#43a047;color:#fff}
 .oddGrid{display:grid;gap:6px;width:min(88vw,340px)}
 .oddGrid button{aspect-ratio:1;border-radius:12px;background:rgba(127,127,127,.15);line-height:1;padding:0;overflow:hidden;min-width:0}
 .oddGrid button.found{background:#43a047}.oddGrid button.miss{animation:cardshake .3s}
@@ -2384,7 +2404,8 @@ function arcClose() { if (arcStop) { arcStop(); arcStop = null; } $('arcade').cl
 function arcMenu() {
   if (arcStop) { arcStop(); arcStop = null; }
   arcOpen('🕹️ Games', '', true);
-  $('arcBody').innerHTML = `<div class="arcMenu">
+  const ch = todayChallenge(), chDone = store.get('chDone', '') === dayKey();
+  $('arcBody').innerHTML = `<button type="button" class="daily ${chDone ? 'done' : ''}" data-arc="${ch.arc}"><span>⭐ Today's challenge: ${ch.name}</span><small>${chDone ? '✅ Done for today! Come back tomorrow.' : `Score ${ch.goal} or more today.`} 🔥 Streak: ${challengeStreak()} day${challengeStreak() === 1 ? '' : 's'}</small></button><div class="arcMenu">
     <button type="button" data-arc="snake"><i>🐍</i><span>Snake<small>Eat the apples, grow longer, don't bump into anything. Best: ${store.get('snakeBest', 0)}</small></span></button>
     <button type="button" data-arc="memory"><i>🃏</i><span>Memory match<small>Turn over two cards at a time and find all the pairs.</small></span></button>
     <button type="button" data-arc="brick"><i>🧱</i><span>Brick Fall<small>Turn and slide the falling bricks to fill whole rows. Best: ${store.get('brickBest', 0)}</small></span></button>
@@ -2393,11 +2414,12 @@ function arcMenu() {
     <button type="button" data-arc="copy"><i>🎵</i><span>Copy Me<small>Watch the pads light up, then copy the pattern. Best: level ${store.get('copyBest', 0)}</small></span></button>
     <button type="button" data-arc="odd"><i>👀</i><span>Spot the odd one<small>Find the one that's different, quickly! Best: ${store.get('oddBest', 0)}</small></span></button>
     <button type="button" data-arc="type"><i>⌨️</i><span>Typing race<small>Type as many words as you can in 45 seconds. Best: ${store.get('typeBest', 0)}</small></span></button>
+    <button type="button" data-arc="grid"><i>🔢</i><span>Number grid<small>Fill the grid so every row, column and box has 1, 2, 3 and 4.</small></span></button>
     <button type="button" data-arc="math"><i>➕</i><span>Maths Sprint<small>Answer as many sums as you can in 60 seconds. Best: ${store.get('mathBest', 0)}</small></span></button>
     <button type="button" data-arc="word"><i>🔤</i><span>Word Guess<small>Guess the word one letter at a time. Words guessed: ${store.get('wordWins', 0)}</small></span></button>
     <button type="button" data-arc="trophy"><i>🏆</i><span>Trophies<small>${trophiesEarned().length} of ${TROPHIES.length} won</small></span></button>
   </div><div class="arcNote">Want to play with someone? Open a chat and tap 🎮.</div>`;
-  const GAMES_ARC = { snake: snakeGame, memory: memoryGame, brick: brickGame, merge: mergeGame, bop: bopGame, copy: copyGame, word: wordGame, math: mathGame, odd: oddGame, type: typeGame, trophy: trophyShelf };
+  const GAMES_ARC = { snake: snakeGame, memory: memoryGame, brick: brickGame, merge: mergeGame, bop: bopGame, copy: copyGame, word: wordGame, math: mathGame, odd: oddGame, type: typeGame, grid: gridGame, trophy: trophyShelf };
   $('arcBody').querySelectorAll('[data-arc]').forEach(b => b.onclick = () => GAMES_ARC[b.dataset.arc]());
 }
 $('arcadeBtn').onclick = () => { if (me && !call && !gcall) arcMenu(); };
@@ -2448,6 +2470,7 @@ function snakeGame() {
   function end() {
     alive = false; clearTimeout(timer); endTone();
     const newBest = score > best(); if (newBest) { store.set('snakeBest', score); if (score) confetti(); }
+    challengeScore('snakeBest', score);
     trophyCheck();
     over.innerHTML = `<div>${newBest && score ? '🏆 New best!' : 'Game over'}</div><div>Score ${score} · Best ${best()}</div><button type="button" class="arcBtn" id="snkAgain">🔁 Play again</button>`;
     over.style.display = 'flex'; $('snkAgain').onclick = start;
@@ -2541,6 +2564,7 @@ function keysOn(map) {   // returns a function that removes the listener again
   return () => document.removeEventListener('keydown', f);
 }
 function bestCheck(key, score, higherIsBetter = true) {
+  challengeScore(key, score);
   const old = store.get(key, 0), better = score > 0 && (higherIsBetter ? score > old : (!old || score < old));
   if (better) { store.set(key, score); confetti(); }
   trophyCheck();
@@ -2833,7 +2857,10 @@ const TROPHIES = [
   ['math20', '➕', 'Number ninja', 'Score 20 in Maths Sprint', () => store.get('mathBest', 0) >= 20],
   ['dots', '⚫', 'Box boss', 'Win dots and boxes in a chat', () => store.get('dotsWins', 0) >= 1],
   ['odd15', '👀', 'Eagle eyes', 'Score 15 in Spot the odd one', () => store.get('oddBest', 0) >= 15],
-  ['type20', '⌨️', 'Speedy fingers', 'Type 20 words in Typing race', () => store.get('typeBest', 0) >= 20]
+  ['type20', '⌨️', 'Speedy fingers', 'Type 20 words in Typing race', () => store.get('typeBest', 0) >= 20],
+  ['grid', '🔢', 'Puzzle solver', 'Solve a Number grid', () => store.get('gridSolved', 0) >= 1],
+  ['streak3', '🔥', 'On fire', 'Do the daily challenge 3 days in a row', () => store.get('chBestStreak', 0) >= 3],
+  ['sticker', '😀', 'Sticker star', 'Send a friend sticker', () => store.get('stickers', 0) >= 1]
 ];
 const trophiesEarned = () => TROPHIES.filter(t => { try { return t[4](); } catch (e) { return false; } }).map(t => t[0]);
 function trophyCheck() {
@@ -3006,6 +3033,107 @@ function typeGame() {
   const onHide = () => { if (document.hidden && live) end(); };
   document.addEventListener('visibilitychange', onHide);
   arcStop = () => { live = false; clearInterval(clock); document.removeEventListener('visibilitychange', onHide); };
+}
+
+/* Daily challenge: one goal a day, the same for everyone, with a streak */
+const CHALLENGES = [['snakeBest', 'snake', '🐍 Snake', 8], ['bopBest', 'bop', '🐞 Bug Bop', 15], ['mathBest', 'math', '➕ Maths Sprint', 12], ['oddBest', 'odd', '👀 Spot the odd one', 8],
+  ['typeBest', 'type', '⌨️ Typing race', 10], ['copyBest', 'copy', '🎵 Copy Me', 5], ['brickBest', 'brick', '🧱 Brick Fall', 500], ['mergeBest', 'merge', '🔢 Merge Up', 500]];
+const dayKey = (d = new Date()) => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+function todayChallenge() {
+  const d = new Date(), n = Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+  const [key, arc, name, goal] = CHALLENGES[n % CHALLENGES.length];
+  return { key, arc, name, goal };
+}
+function challengeStreak() {   // a streak only counts if it reaches today or yesterday
+  const last = store.get('chLast', ''), y = new Date(); y.setDate(y.getDate() - 1);
+  return last === dayKey() || last === dayKey(y) ? store.get('chStreak', 0) : 0;
+}
+function challengeScore(key, score) {
+  const ch = todayChallenge(), today = dayKey();
+  if (key !== ch.key || score < ch.goal || store.get('chDone', '') === today) return;
+  const streak = challengeStreak() + 1;
+  store.set('chDone', today); store.set('chLast', today); store.set('chStreak', streak);
+  store.set('chBestStreak', Math.max(streak, store.get('chBestStreak', 0)));
+  setTimeout(() => { confetti(); toast(`⭐ Daily challenge done! 🔥 ${streak} day streak`, 3500); }, 600);
+  trophyCheck();
+}
+
+/* Number grid: a 4x4 puzzle; each row, column and 2x2 box holds 1 to 4 */
+function gridGame(level) {
+  level = level || store.get('gridLevel', 2);
+  if (![1, 2, 3].includes(level)) level = 2;
+  store.set('gridLevel', level);
+  const sh = a => a.slice().sort(() => Math.random() - 0.5);
+  // a finished grid: a known pattern with the numbers, rows in a band, columns in a stack, and bands and stacks shuffled
+  const base = [[1, 2, 3, 4], [3, 4, 1, 2], [2, 1, 4, 3], [4, 3, 2, 1]], perm = sh([1, 2, 3, 4]);
+  const rows = sh([0, 1]).flatMap(b => sh([0, 1]).map(r => b * 2 + r)), cols = sh([0, 1]).flatMap(b => sh([0, 1]).map(c => b * 2 + c));
+  const sol = rows.map(r => cols.map(c => perm[base[r][c] - 1])).flat();
+  const blanks = new Set(sh([...Array(16).keys()]).slice(0, [0, 6, 8, 10][level]));
+  const cell = sol.map((v, i) => (blanks.has(i) ? 0 : v));
+  let sel = -1, t0 = 0, clock = 0, solved = false;
+  arcOpen('🔢 Number grid', '');
+  $('arcBody').innerHTML = `<div class="memSize" id="ngLvl">${[[1, 'Easy'], [2, 'Medium'], [3, 'Hard']].map(([n, t]) => `<button type="button" data-n="${n}" class="${n === level ? 'on' : ''}">${t}</button>`).join('')}</div>
+    <div class="arcNote" id="ngNote">Tap a box, then a number. Every row, column and 2×2 box needs 1, 2, 3 and 4.</div>
+    <div class="ngrid" id="ngGrid"></div><div class="npad" id="ngPad">${[1, 2, 3, 4].map(n => `<button type="button" data-v="${n}">${n}</button>`).join('')}<button type="button" data-v="0">⌫</button></div>`;
+  const clash = i => { const v = cell[i]; if (!v) return false; const r = Math.floor(i / 4), c = i % 4, br = r - r % 2, bc = c - c % 2;
+    return cell.some((w, j) => j !== i && w === v && (Math.floor(j / 4) === r || j % 4 === c || (Math.floor(j / 4) - Math.floor(j / 4) % 2 === br && j % 4 - j % 4 % 2 === bc))); };
+  function draw() {
+    $('ngGrid').innerHTML = cell.map((v, i) => `<button type="button" data-i="${i}" class="${blanks.has(i) ? '' : 'given'} ${i === sel ? 'sel' : ''} ${clash(i) ? 'bad' : ''} ${solved ? 'solved' : ''}">${v || ''}</button>`).join('');
+  }
+  function put(v) {
+    if (solved || sel < 0 || !blanks.has(sel)) return;
+    if (!t0) { t0 = Date.now(); clock = setInterval(() => { $('arcScore').textContent = `${Math.round((Date.now() - t0) / 1000)}s`; }, 1000); }
+    cell[sel] = v; blip();
+    if (cell.every((x, i) => x && !clash(i))) {   // any correct filling counts, not only the one we started from
+      solved = true; clearInterval(clock); sel = -1;
+      const secs = Math.max(1, Math.round((Date.now() - t0) / 1000));
+      store.set('gridSolved', store.get('gridSolved', 0) + 1);
+      const r = bestCheck('gridBest' + level, secs, false);
+      $('ngNote').innerHTML = `🎉 Solved in ${secs}s! ${r.better ? '🏆 New best!' : `Best ${r.best}s`} <button type="button" class="arcBtn" id="ngAgain" style="margin-left:6px">🔁 New puzzle</button>`;
+      $('ngAgain').onclick = () => { arcStop && arcStop(); gridGame(level); };
+      if (!r.better) confetti();
+    }
+    draw();
+  }
+  $('ngGrid').onclick = e => { const b = e.target.closest('[data-i]'); if (!b || solved) return; const i = +b.dataset.i; if (!blanks.has(i)) return; sel = i; draw(); };
+  $('ngPad').onclick = e => { const b = e.target.closest('[data-v]'); if (b) put(+b.dataset.v); };
+  $('ngLvl').onclick = e => { const b = e.target.closest('[data-n]'); if (b) { arcStop && arcStop(); gridGame(+b.dataset.n); } };
+  const onKey = e => { if (/^[0-4]$/.test(e.key)) put(+e.key); else if (e.key === 'Backspace') put(0); };
+  document.addEventListener('keydown', onKey);
+  arcStop = () => { clearInterval(clock); document.removeEventListener('keydown', onKey); };
+  draw();
+}
+
+/* Friend stickers: your own picture with a word, sent like a photo */
+const STICKER_WORDS = ['Hi! 👋', 'Love you ❤️', 'LOL 😂', 'Yay! 🎉', 'Good night 🌙', 'Miss you 🥺', 'Thank you 🙏', 'Wow! 😮', 'Call me 📞'];
+function stickerPicker(num) {
+  const mine = (PEOPLE.find(p => p.num === me.num) || {}).av || 'man';
+  modal(`<h3>😀 Friend stickers</h3><div class="note">Your picture with a word. Tap one to send it to ${esc(chatName(num))}.</div>
+    <div class="stickers" id="stGrid">${STICKER_WORDS.map((w, i) => `<button type="button" data-s="${i}"><div class="av">${avatar(mine)}</div><b>${esc(w)}</b></button>`).join('')}</div>
+    <button type="button" class="plain" id="stNo">Cancel</button>`);
+  $('stNo').onclick = closeModal;
+  $('stGrid').onclick = async e => {
+    const b = e.target.closest('[data-s]'); if (!b) return;
+    closeModal();
+    try { sendMedia(num, 'photo', await stickerImage(mine, STICKER_WORDS[+b.dataset.s]), { text: '😀' }); store.set('stickers', store.get('stickers', 0) + 1); trophyCheck(); }
+    catch (x) { toast('Could not make that sticker'); }
+  };
+}
+function stickerImage(kind, word) {
+  return new Promise((ok, bad) => {
+    const img = new Image();
+    img.onload = () => {
+      const cv = document.createElement('canvas'); cv.width = 360; cv.height = 400; const g = cv.getContext('2d');
+      g.fillStyle = '#ffffff'; g.beginPath(); g.roundRect ? g.roundRect(0, 0, 360, 400, 40) : g.rect(0, 0, 360, 400); g.fill();
+      g.save(); g.beginPath(); g.arc(180, 160, 130, 0, 7); g.clip(); g.drawImage(img, 50, 30, 260, 260); g.restore();
+      g.lineWidth = 8; g.strokeStyle = '#ffffff'; g.beginPath(); g.arc(180, 160, 130, 0, 7); g.stroke();
+      g.font = 'bold 44px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.lineWidth = 10; g.strokeStyle = '#ffffff'; g.strokeText(word, 180, 340); g.fillStyle = '#222'; g.fillText(word, 180, 340);
+      ok(cv.toDataURL('image/png'));
+    };
+    img.onerror = bad;
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(avatar(kind).replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" width="260" height="260" '));
+  });
 }
 
 /* ---------- settings ---------- */
@@ -3852,10 +3980,12 @@ if ($('photoBtn')) $('photoBtn').onclick = () => {
   if (!threadNum) return;
   const num = threadNum;
   modal(`<h3>Send a picture</h3><div class="gamepick"><button type="button" class="gloss g-glass" style="padding:14px" id="pkPhoto">📷 A photo from this phone</button>
-    <button type="button" class="gloss g-glass" style="padding:14px" id="pkDraw">✏️ Draw a picture</button><button type="button" class="plain" id="pkNo">Cancel</button></div>`);
+    <button type="button" class="gloss g-glass" style="padding:14px" id="pkDraw">✏️ Draw a picture</button>
+    <button type="button" class="gloss g-glass" style="padding:14px" id="pkStick">😀 Send a friend sticker</button><button type="button" class="plain" id="pkNo">Cancel</button></div>`);
   $('pkNo').onclick = closeModal;
   $('pkPhoto').onclick = () => { closeModal(); $('photoIn').click(); };
   $('pkDraw').onclick = () => { closeModal(); doodle(num); };
+  $('pkStick').onclick = () => stickerPicker(num);
 };
 if ($('photoIn')) $('photoIn').onchange = async () => {
   const f = $('photoIn').files && $('photoIn').files[0];
