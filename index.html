@@ -939,6 +939,24 @@ body:not(.tv) .arcade{background:#0b141a}
 .doodleActs{display:flex;gap:8px}
 .doodleActs button{padding:10px 16px;border-radius:999px;background:rgba(127,127,127,.22);font-weight:700}
 .doodleActs .arcBtn{background:var(--t-acc,#00a884);color:var(--t-on-acc,#fff)}
+/* trophies */
+.trophies{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;width:100%;max-width:380px}
+.trophy{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border-radius:16px;background:rgba(127,127,127,.16);text-align:center;font-size:13px}
+.trophy i{font-style:normal;font-size:34px}
+.trophy b{font-size:14px}
+.trophy.locked{opacity:.45}.trophy.locked i{filter:grayscale(1)}
+/* word guess */
+.wgHint{font-size:56px;line-height:1}
+.wgWord{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.wgWord span{width:30px;height:40px;border-bottom:3px solid var(--ink);display:grid;place-items:center;font-size:26px;font-weight:900}
+.wgLives{font-size:24px;letter-spacing:2px;min-height:30px}
+.wgKeys{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;width:100%;max-width:380px}
+.wgKeys button{height:42px;border-radius:10px;background:rgba(127,127,127,.22);font-weight:800;font-size:17px}
+.wgKeys button.yes{background:#43a047;color:#fff}.wgKeys button.no{opacity:.3}
+/* emoji rain */
+.erain{position:fixed;top:-60px;pointer-events:none;z-index:10000;font-size:30px;animation:erain var(--t) linear var(--d) forwards}
+@keyframes erain{to{transform:translate(var(--x),112vh) rotate(var(--r))}}
+@media (prefers-reduced-motion:reduce){.erain{display:none}}
 .tonepick button{font-size:12.5px;padding:9px 2px}
 /* confetti when a call connects */
 .confetti{position:fixed;top:-16px;width:9px;height:14px;pointer-events:none;z-index:10000;border-radius:2px;animation:confall var(--t) cubic-bezier(.25,.6,.4,1) var(--d) forwards}
@@ -2073,6 +2091,7 @@ function sendMsg(num, text) {
   if (replyTo) { m.re = replyTo; clearReply(); }
   chatOf(num).msgs.push(m); saveChats(); renderThread(true);
   beep([700], 0.05, 0.04);
+  if (!m.re && onlyEmoji(text)) emojiRain(text);
   flush(num); setTimeout(pump, 6500);
 }
 /* open (or reuse) a data link to a number for chat */
@@ -2132,6 +2151,7 @@ function receiveMsg(num, sentName, id0, text, c, opts) {
     }
     pop(); saveChats();
     if (threadNum === num) renderThread();
+    if (seeing && !ex.kind && !ex.re && onlyEmoji(nm.text)) emojiRain(nm.text);
     if (seeing) setTimeout(() => sendRead(num), 300);
   }
   if (!c) { (ackQ[num] = ackQ[num] || []).push(id); link(num); flushAcks(num); }
@@ -2340,8 +2360,10 @@ function arcMenu() {
     <button type="button" data-arc="merge"><i>🔢</i><span>Merge Up<small>Slide the tiles; two the same join into one double. Best: ${store.get('mergeBest', 0)}</small></span></button>
     <button type="button" data-arc="bop"><i>🐞</i><span>Bug Bop<small>Tap the bugs before they hide, but not the bees! Best: ${store.get('bopBest', 0)}</small></span></button>
     <button type="button" data-arc="copy"><i>🎵</i><span>Copy Me<small>Watch the pads light up, then copy the pattern. Best: level ${store.get('copyBest', 0)}</small></span></button>
+    <button type="button" data-arc="word"><i>🔤</i><span>Word Guess<small>Guess the word one letter at a time. Words guessed: ${store.get('wordWins', 0)}</small></span></button>
+    <button type="button" data-arc="trophy"><i>🏆</i><span>Trophies<small>${trophiesEarned().length} of ${TROPHIES.length} won</small></span></button>
   </div><div class="arcNote">Want to play with someone? Open a chat and tap 🎮.</div>`;
-  const GAMES_ARC = { snake: snakeGame, memory: memoryGame, brick: brickGame, merge: mergeGame, bop: bopGame, copy: copyGame };
+  const GAMES_ARC = { snake: snakeGame, memory: memoryGame, brick: brickGame, merge: mergeGame, bop: bopGame, copy: copyGame, word: wordGame, trophy: trophyShelf };
   $('arcBody').querySelectorAll('[data-arc]').forEach(b => b.onclick = () => GAMES_ARC[b.dataset.arc]());
 }
 $('arcadeBtn').onclick = () => { if (me && !call && !gcall) arcMenu(); };
@@ -2392,6 +2414,7 @@ function snakeGame() {
   function end() {
     alive = false; clearTimeout(timer); endTone();
     const newBest = score > best(); if (newBest) { store.set('snakeBest', score); if (score) confetti(); }
+    trophyCheck();
     over.innerHTML = `<div>${newBest && score ? '🏆 New best!' : 'Game over'}</div><div>Score ${score} · Best ${best()}</div><button type="button" class="arcBtn" id="snkAgain">🔁 Play again</button>`;
     over.style.display = 'flex'; $('snkAgain').onclick = start;
   }
@@ -2449,6 +2472,7 @@ function memoryGame(size) {
         clearInterval(tick);
         const secs = Math.round((Date.now() - t0) / 1000), newBest = !best() || moves < best();
         if (newBest) store.set(bestKey, moves);
+        trophyCheck();
         setTimeout(() => {
           confetti();
           $('memNote').innerHTML = `${newBest ? '🏆 New best! ' : '🎉 '}All pairs in ${moves} moves and ${secs}s · best ${best()}`;
@@ -2485,6 +2509,7 @@ function keysOn(map) {   // returns a function that removes the listener again
 function bestCheck(key, score, higherIsBetter = true) {
   const old = store.get(key, 0), better = score > 0 && (higherIsBetter ? score > old : (!old || score < old));
   if (better) { store.set(key, score); confetti(); }
+  trophyCheck();
   return { best: better ? score : old, better };
 }
 
@@ -2732,11 +2757,96 @@ function doodle(num) {
   $('ddSend').onclick = () => {
     if (!strokes.length) return toast('Draw something first ✏️');
     sendMedia(num, 'photo', cv.toDataURL('image/jpeg', 0.82), { text: '✏️' });
+    store.set('doodles', store.get('doodles', 0) + 1); trophyCheck();
     arcClose();
     if (links[num] && links[num].open) toast('Doodle sent!');   // otherwise the "Will send when…" note stays
   };
   paint();
   arcStop = () => { strokes = []; };
+}
+
+/* Emoji rain: an emoji-only message rains down the screen */
+function emojiRain(text) {
+  if (!fxOn() || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+  const parts = [...(window.Intl && Intl.Segmenter ? new Intl.Segmenter().segment(text) : text)].map(x => x.segment || x).filter(x => x.trim());
+  if (!parts.length) return;
+  for (let i = 0; i < 28; i++) {
+    const el = document.createElement('i'); el.className = 'erain'; el.textContent = parts[i % parts.length];
+    const t = 2.2 + Math.random() * 1.6, d = Math.random() * 1.2;
+    el.style.cssText = `left:${Math.random() * 96}vw;font-size:${22 + Math.random() * 20}px;--t:${t.toFixed(2)}s;--d:${d.toFixed(2)}s;--x:${(Math.random() * 60 - 30).toFixed(0)}px;--r:${(Math.random() * 120 - 60).toFixed(0)}deg`;
+    document.body.appendChild(el); setTimeout(() => el.remove(), (t + d) * 1000 + 100);
+  }
+}
+
+/* Trophies: won by playing, kept per person on this device */
+const TROPHIES = [
+  ['snake5', '🐍', 'Hungry snake', 'Score 5 in Snake', () => store.get('snakeBest', 0) >= 5],
+  ['snake20', '🐉', 'Super snake', 'Score 20 in Snake', () => store.get('snakeBest', 0) >= 20],
+  ['mem', '🃏', 'Sharp memory', 'Win Memory match', () => [12, 16, 20].some(n => store.get('memBest' + n, 0) > 0)],
+  ['memhard', '🧠', 'Memory master', 'Win Memory match on Hard', () => store.get('memBest20', 0) > 0],
+  ['brick1k', '🧱', 'Brick builder', 'Score 1,000 in Brick Fall', () => store.get('brickBest', 0) >= 1000],
+  ['brick5k', '🏗️', 'Brick boss', 'Score 5,000 in Brick Fall', () => store.get('brickBest', 0) >= 5000],
+  ['merge1k', '🔢', 'Merger', 'Score 1,000 in Merge Up', () => store.get('mergeBest', 0) >= 1000],
+  ['merge5k', '💎', 'Big merger', 'Score 5,000 in Merge Up', () => store.get('mergeBest', 0) >= 5000],
+  ['bop20', '🐞', 'Bug buster', 'Score 20 in Bug Bop', () => store.get('bopBest', 0) >= 20],
+  ['copy5', '🎵', 'Copy cat', 'Reach level 5 in Copy Me', () => store.get('copyBest', 0) >= 5],
+  ['copy10', '🎼', 'Super listener', 'Reach level 10 in Copy Me', () => store.get('copyBest', 0) >= 10],
+  ['word3', '🔤', 'Word wizard', 'Guess 3 words in Word Guess', () => store.get('wordWins', 0) >= 3],
+  ['doodle', '🎨', 'Artist', 'Send a doodle', () => store.get('doodles', 0) >= 1],
+  ['ttt', '❌', 'Tic-tac-champ', 'Win tic-tac-toe in a chat', () => store.get('tttWins', 0) >= 1]
+];
+const trophiesEarned = () => TROPHIES.filter(t => { try { return t[4](); } catch (e) { return false; } }).map(t => t[0]);
+function trophyCheck() {
+  const had = store.get('trophies', []), now = trophiesEarned(), fresh = now.filter(id => !had.includes(id));
+  if (!fresh.length) return;
+  store.set('trophies', now);
+  const t = TROPHIES.find(x => x[0] === fresh[0]);
+  setTimeout(() => { toast(`🏆 New trophy: ${t[1]} ${t[2]}!`, 3500); beep([784, 988, 1319], 0.12, 0.06); }, 900);
+}
+function trophyShelf() {
+  const won = trophiesEarned();
+  arcOpen('🏆 Trophies', `${won.length}/${TROPHIES.length}`);
+  $('arcBody').innerHTML = `<div class="trophies">${TROPHIES.map(([id, ic, name, how]) => `<div class="trophy ${won.includes(id) ? '' : 'locked'}"><i>${ic}</i><b>${name}</b><span>${won.includes(id) ? '✅ Won!' : how}</span></div>`).join('')}</div>`;
+  arcStop = null;
+}
+
+/* Word Guess: guess the word a letter at a time; each wrong letter pops a balloon */
+const WORDS = [['APPLE', '🍎'], ['TIGER', '🐯'], ['ROCKET', '🚀'], ['BANANA', '🍌'], ['PIZZA', '🍕'], ['RAINBOW', '🌈'], ['DOLPHIN', '🐬'], ['ROBOT', '🤖'], ['GUITAR', '🎸'], ['CASTLE', '🏰'],
+  ['PENGUIN', '🐧'], ['TRAIN', '🚆'], ['CAMERA', '📷'], ['DRAGON', '🐉'], ['FLOWER', '🌸'], ['ZEBRA', '🦓'], ['MONKEY', '🐒'], ['TURTLE', '🐢'], ['PLANET', '🪐'], ['CHEESE', '🧀'],
+  ['ELEPHANT', '🐘'], ['UMBRELLA', '☂️'], ['VOLCANO', '🌋'], ['OCTOPUS', '🐙'], ['BICYCLE', '🚲'], ['PUMPKIN', '🎃'], ['RABBIT', '🐇'], ['SNOWMAN', '⛄'], ['CARROT', '🥕'], ['DINOSAUR', '🦖']];
+function wordGame() {
+  const [word, hint] = WORDS[Math.floor(Math.random() * WORDS.length)], LIVES = 6;
+  const tried = new Set();
+  let misses = 0, over = false;
+  arcOpen('🔤 Word Guess', `Won: ${store.get('wordWins', 0)}`);
+  $('arcBody').innerHTML = `<div class="wgHint">${hint}</div><div class="arcNote">Clue: it's this! ${word.length} letters.</div>
+    <div class="wgWord" id="wgWord"></div><div class="wgLives" id="wgLives"></div><div class="arcNote" id="wgNote"></div>
+    <div class="wgKeys" id="wgKeys">${[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(c => `<button type="button" data-l="${c}">${c}</button>`).join('')}</div>`;
+  function draw() {
+    $('wgWord').innerHTML = [...word].map(c => `<span>${tried.has(c) || over ? c : ''}</span>`).join('');
+    $('wgLives').textContent = '🎈'.repeat(LIVES - misses) + '💥'.repeat(misses);
+  }
+  function guess(c) {
+    if (over || tried.has(c)) return;
+    tried.add(c);
+    const b = $('wgKeys').querySelector(`[data-l="${c}"]`);
+    if (word.includes(c)) { if (b) b.classList.add('yes'); beep([880], 0.06, 0.05); }
+    else { if (b) b.classList.add('no'); misses++; beep([196], 0.15, 0.06); }
+    const won = [...word].every(x => tried.has(x)), lost = misses >= LIVES;
+    if (won || lost) {
+      over = true;
+      if (won) { store.set('wordWins', store.get('wordWins', 0) + 1); confetti(); trophyCheck(); $('arcScore').textContent = `Won: ${store.get('wordWins', 0)}`; }
+      else endTone();
+      $('wgNote').innerHTML = (won ? '🎉 You got it!' : `💥 Out of balloons. It was ${word}.`) + ' <button type="button" class="arcBtn" id="wgAgain" style="margin-left:6px">🔁 Next word</button>';
+      $('wgAgain').onclick = () => { arcStop && arcStop(); wordGame(); };
+    }
+    draw();
+  }
+  $('wgKeys').onclick = e => { const b = e.target.closest('[data-l]'); if (b) guess(b.dataset.l); };
+  const onKey = e => { if (/^[a-z]$/i.test(e.key) && !e.ctrlKey && !e.metaKey) { e.preventDefault(); guess(e.key.toUpperCase()); } };
+  document.addEventListener('keydown', onKey);
+  arcStop = () => document.removeEventListener('keydown', onKey);
+  draw();
 }
 
 /* ---------- settings ---------- */
@@ -3252,7 +3362,7 @@ function wireGames(box, games) {
     if (g.n !== me.num || g.b[i] !== '.' || tttWinner(g.b)) return;
     const nb = g.b.slice(0, i) + meMark + g.b.slice(i + 1), other = g.x === me.num ? g.o : g.x, w = tttWinner(nb);
     sendGame(threadNum, Object.assign({}, g, { b: nb, n: other }), w ? (w.who === 'd' ? '🎮 Tic-tac-toe: a draw!' : '🎮 Tic-tac-toe: I won!') : '🎮 Tic-tac-toe: your turn!');
-    if (w && w.who === meMark) confetti();
+    if (w && w.who === meMark) { confetti(); store.set('tttWins', store.get('tttWins', 0) + 1); trophyCheck(); }
   });
   box.querySelectorAll('[data-rps]').forEach(b => b.onclick = e => {
     e.stopPropagation();
