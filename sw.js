@@ -31,7 +31,7 @@ self.addEventListener('push', e => {
     }
     if (info && info.kind === 'msg') {
       return self.registration.showNotification('\u{1F4AC} ' + info.name, {
-        body: info.text || 'New message', tag: 'jk-msg-' + info.from, renotify: true, icon: ICON, badge: ICON,
+        body: String(info.text || '').split('\n§GAME§')[0] || 'New message', tag: 'jk-msg-' + info.from, renotify: true, icon: ICON, badge: ICON,
         vibrate: [200, 100, 200], data: { kind: 'msg', from: info.from }
       });
     }
