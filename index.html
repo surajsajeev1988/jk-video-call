@@ -865,7 +865,7 @@ body:not(.tv) .arcade{background:#0b141a}
 .arcHead b{flex:1}
 .arcHead span{font-weight:700;font-variant-numeric:tabular-nums}
 .arcBack{width:40px;height:40px;border-radius:50%;background:rgba(127,127,127,.2);font-size:18px}
-.arcBody{flex:1;display:flex;flex-direction:column;align-items:center;gap:14px;padding:6px 16px 16px;overflow-y:auto}
+.arcBody{flex:1;display:flex;flex-direction:column;align-items:center;gap:14px;padding:6px 16px 16px;overflow-y:auto;overflow-x:hidden}
 .arcMenu{display:flex;flex-direction:column;gap:12px;width:100%;max-width:360px;margin-top:10px}
 .arcMenu button{display:flex;align-items:center;gap:14px;padding:16px;border-radius:18px;background:rgba(127,127,127,.16);text-align:left;font-size:17px;font-weight:700}
 .arcMenu button i{font-style:normal;font-size:34px}
@@ -895,6 +895,68 @@ body:not(.tv) .arcade{background:#0b141a}
 .mcard.shake .in{animation:cardshake .35s}
 @keyframes cardshake{25%{transform:rotateY(180deg) translateX(-5px)}75%{transform:rotateY(180deg) translateX(5px)}}
 @media (prefers-reduced-motion:reduce){.mcard .in{transition:none}}
+/* shared game controls */
+.ctlRow{display:flex;gap:8px;justify-content:center}
+.ctlRow button{width:58px;height:52px;border-radius:14px;background:rgba(127,127,127,.22);font-size:24px}
+.ctlRow button:active{transform:scale(.92)}
+.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;border-radius:14px;background:rgba(0,0,0,.6);color:#fff;text-align:center;font-weight:700;font-size:18px;padding:12px}
+/* brick fall */
+.brickWrap{display:flex;gap:10px;align-items:flex-start}
+.brickBox{position:relative;touch-action:none}
+.brickBox canvas{display:block;border-radius:12px;background:rgba(127,127,127,.14);touch-action:none}
+.brickSide{display:flex;flex-direction:column;gap:8px;font-size:13px;font-weight:700;text-align:center;min-width:64px}
+.brickSide canvas{display:block;border-radius:10px;background:rgba(127,127,127,.14)}
+.brickSide b{display:block;font-size:20px}
+/* merge up */
+.mergeBox{position:relative;touch-action:none;width:min(calc(100vw - 32px),360px)}
+.mergeGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px;border-radius:16px;background:rgba(127,127,127,.18);touch-action:none}
+.mtile{aspect-ratio:1;border-radius:10px;display:grid;place-items:center;font-weight:900;font-size:clamp(16px,7vw,30px);background:rgba(127,127,127,.15);color:#1d1d1d}
+.mtile.n{animation:tilepop .18s ease-out}.mtile.m{animation:tilemerge .22s ease-out}
+@keyframes tilepop{from{transform:scale(.3)}}
+@keyframes tilemerge{50%{transform:scale(1.18)}}
+/* bug bop */
+.bopGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:min(88vw,330px)}
+.hole{aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 50% 60%,rgba(60,40,20,.75),rgba(60,40,20,.35) 70%);font-size:clamp(34px,13vw,58px);display:grid;place-items:center;overflow:hidden}
+.hole span{display:block;animation:popup .16s ease-out}
+.hole.hit span{animation:bopped .3s forwards}
+.hole.ouch{animation:cardshake .35s}
+@keyframes popup{from{transform:translateY(70%)}}
+@keyframes bopped{to{transform:scale(1.5);opacity:0}}
+/* copy me */
+.copyGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:min(84vw,320px)}
+.pad{aspect-ratio:1;border-radius:24px;opacity:.55;transition:opacity .12s,transform .12s;box-shadow:0 4px 10px rgba(0,0,0,.25)}
+.pad.lit{opacity:1;transform:scale(1.05);box-shadow:0 0 26px currentColor}
+.pad:disabled{cursor:default}
+/* doodle */
+.doodleBox canvas{display:block;border-radius:14px;background:#fff;touch-action:none;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.palette{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:360px}
+.palette button{width:34px;height:34px;border-radius:50%;border:3px solid transparent}
+.palette button.on{border-color:var(--ink);transform:scale(1.12)}
+.sizes{display:flex;gap:8px}
+.sizes button{width:42px;height:38px;border-radius:12px;background:rgba(127,127,127,.2);display:grid;place-items:center}
+.sizes button.on{background:var(--t-acc,#00a884)}
+.sizes i{display:block;border-radius:50%;background:var(--ink)}
+.doodleActs{display:flex;gap:8px}
+.doodleActs button{padding:10px 16px;border-radius:999px;background:rgba(127,127,127,.22);font-weight:700}
+.doodleActs .arcBtn{background:var(--t-acc,#00a884);color:var(--t-on-acc,#fff)}
+/* trophies */
+.trophies{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;width:100%;max-width:380px}
+.trophy{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border-radius:16px;background:rgba(127,127,127,.16);text-align:center;font-size:13px}
+.trophy i{font-style:normal;font-size:34px}
+.trophy b{font-size:14px}
+.trophy.locked{opacity:.45}.trophy.locked i{filter:grayscale(1)}
+/* word guess */
+.wgHint{font-size:56px;line-height:1}
+.wgWord{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.wgWord span{width:30px;height:40px;border-bottom:3px solid var(--ink);display:grid;place-items:center;font-size:26px;font-weight:900}
+.wgLives{font-size:24px;letter-spacing:2px;min-height:30px}
+.wgKeys{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;width:100%;max-width:380px}
+.wgKeys button{height:42px;border-radius:10px;background:rgba(127,127,127,.22);font-weight:800;font-size:17px}
+.wgKeys button.yes{background:#43a047;color:#fff}.wgKeys button.no{opacity:.3}
+/* emoji rain */
+.erain{position:fixed;top:-60px;pointer-events:none;z-index:10000;font-size:30px;animation:erain var(--t) linear var(--d) forwards}
+@keyframes erain{to{transform:translate(var(--x),112vh) rotate(var(--r))}}
+@media (prefers-reduced-motion:reduce){.erain{display:none}}
 .tonepick button{font-size:12.5px;padding:9px 2px}
 /* confetti when a call connects */
 .confetti{position:fixed;top:-16px;width:9px;height:14px;pointer-events:none;z-index:10000;border-radius:2px;animation:confall var(--t) cubic-bezier(.25,.6,.4,1) var(--d) forwards}
@@ -2029,6 +2091,7 @@ function sendMsg(num, text) {
   if (replyTo) { m.re = replyTo; clearReply(); }
   chatOf(num).msgs.push(m); saveChats(); renderThread(true);
   beep([700], 0.05, 0.04);
+  if (!m.re && onlyEmoji(text)) emojiRain(text);
   flush(num); setTimeout(pump, 6500);
 }
 /* open (or reuse) a data link to a number for chat */
@@ -2088,6 +2151,7 @@ function receiveMsg(num, sentName, id0, text, c, opts) {
     }
     pop(); saveChats();
     if (threadNum === num) renderThread();
+    if (seeing && !ex.kind && !ex.re && onlyEmoji(nm.text)) emojiRain(nm.text);
     if (seeing) setTimeout(() => sendRead(num), 300);
   }
   if (!c) { (ackQ[num] = ackQ[num] || []).push(id); link(num); flushAcks(num); }
@@ -2283,19 +2347,27 @@ function confetti() {
 
 /* ---------- games corner: snake and memory match ---------- */
 let arcStop = null;   // stops whatever game is running
-function arcOpen(title, score) { $('arcTitle').textContent = title; $('arcScore').textContent = score || ''; $('arcade').classList.remove('hidden'); }
+let arcHome = false;   // true when ✕ should close the games screen rather than go back to the games list
+function arcOpen(title, score, home) { arcHome = !!home; $('arcTitle').textContent = title; $('arcScore').textContent = score || ''; $('arcade').classList.remove('hidden'); }
 function arcClose() { if (arcStop) { arcStop(); arcStop = null; } $('arcade').classList.add('hidden'); $('arcBody').innerHTML = ''; }
 function arcMenu() {
   if (arcStop) { arcStop(); arcStop = null; }
-  arcOpen('🕹️ Games');
+  arcOpen('🕹️ Games', '', true);
   $('arcBody').innerHTML = `<div class="arcMenu">
     <button type="button" data-arc="snake"><i>🐍</i><span>Snake<small>Eat the apples, grow longer, don't bump into anything. Best: ${store.get('snakeBest', 0)}</small></span></button>
     <button type="button" data-arc="memory"><i>🃏</i><span>Memory match<small>Turn over two cards at a time and find all the pairs.</small></span></button>
+    <button type="button" data-arc="brick"><i>🧱</i><span>Brick Fall<small>Turn and slide the falling bricks to fill whole rows. Best: ${store.get('brickBest', 0)}</small></span></button>
+    <button type="button" data-arc="merge"><i>🔢</i><span>Merge Up<small>Slide the tiles; two the same join into one double. Best: ${store.get('mergeBest', 0)}</small></span></button>
+    <button type="button" data-arc="bop"><i>🐞</i><span>Bug Bop<small>Tap the bugs before they hide, but not the bees! Best: ${store.get('bopBest', 0)}</small></span></button>
+    <button type="button" data-arc="copy"><i>🎵</i><span>Copy Me<small>Watch the pads light up, then copy the pattern. Best: level ${store.get('copyBest', 0)}</small></span></button>
+    <button type="button" data-arc="word"><i>🔤</i><span>Word Guess<small>Guess the word one letter at a time. Words guessed: ${store.get('wordWins', 0)}</small></span></button>
+    <button type="button" data-arc="trophy"><i>🏆</i><span>Trophies<small>${trophiesEarned().length} of ${TROPHIES.length} won</small></span></button>
   </div><div class="arcNote">Want to play with someone? Open a chat and tap 🎮.</div>`;
-  $('arcBody').querySelectorAll('[data-arc]').forEach(b => b.onclick = () => (b.dataset.arc === 'snake' ? snakeGame : memoryGame)());
+  const GAMES_ARC = { snake: snakeGame, memory: memoryGame, brick: brickGame, merge: mergeGame, bop: bopGame, copy: copyGame, word: wordGame, trophy: trophyShelf };
+  $('arcBody').querySelectorAll('[data-arc]').forEach(b => b.onclick = () => GAMES_ARC[b.dataset.arc]());
 }
 $('arcadeBtn').onclick = () => { if (me && !call && !gcall) arcMenu(); };
-$('arcBack').onclick = () => { if ($('arcTitle').textContent === '🕹️ Games') arcClose(); else arcMenu(); };
+$('arcBack').onclick = () => { if (arcHome) arcClose(); else arcMenu(); };
 const themeAcc = () => (getComputedStyle(document.body).getPropertyValue('--t-acc-text') || '').trim() || '#25d366';
 
 function snakeGame() {
@@ -2342,6 +2414,7 @@ function snakeGame() {
   function end() {
     alive = false; clearTimeout(timer); endTone();
     const newBest = score > best(); if (newBest) { store.set('snakeBest', score); if (score) confetti(); }
+    trophyCheck();
     over.innerHTML = `<div>${newBest && score ? '🏆 New best!' : 'Game over'}</div><div>Score ${score} · Best ${best()}</div><button type="button" class="arcBtn" id="snkAgain">🔁 Play again</button>`;
     over.style.display = 'flex'; $('snkAgain').onclick = start;
   }
@@ -2399,6 +2472,7 @@ function memoryGame(size) {
         clearInterval(tick);
         const secs = Math.round((Date.now() - t0) / 1000), newBest = !best() || moves < best();
         if (newBest) store.set(bestKey, moves);
+        trophyCheck();
         setTimeout(() => {
           confetti();
           $('memNote').innerHTML = `${newBest ? '🏆 New best! ' : '🎉 '}All pairs in ${moves} moves and ${secs}s · best ${best()}`;
@@ -2414,6 +2488,365 @@ function memoryGame(size) {
   };
   score();
   arcStop = () => clearInterval(tick);
+}
+
+/* common helpers for the arcade games */
+function swipeOn(el, onSwipe, onTap) {
+  let sx = 0, sy = 0, down = false;
+  el.addEventListener('pointerdown', e => { down = true; sx = e.clientX; sy = e.clientY; });
+  el.addEventListener('pointerup', e => {
+    if (!down) return; down = false;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) { if (onTap) onTap(e); return; }
+    onSwipe(Math.abs(dx) > Math.abs(dy) ? [Math.sign(dx), 0] : [0, Math.sign(dy)], dx, dy);
+  });
+}
+function keysOn(map) {   // returns a function that removes the listener again
+  const f = e => { const k = map[e.key]; if (k) { e.preventDefault(); k(); } };
+  document.addEventListener('keydown', f);
+  return () => document.removeEventListener('keydown', f);
+}
+function bestCheck(key, score, higherIsBetter = true) {
+  const old = store.get(key, 0), better = score > 0 && (higherIsBetter ? score > old : (!old || score < old));
+  if (better) { store.set(key, score); confetti(); }
+  trophyCheck();
+  return { best: better ? score : old, better };
+}
+
+/* Brick Fall: falling bricks; full rows disappear */
+function brickGame() {
+  const C = 10, R = 18, cell = Math.max(14, Math.floor(Math.min((window.innerWidth - 136) / C, (window.innerHeight - 330) / R, 26)));
+  const W = cell * C, H = cell * R;
+  arcOpen('🧱 Brick Fall', '0');
+  $('arcBody').innerHTML = `<div class="brickWrap"><div class="brickBox"><canvas id="bkc" width="${W * 2}" height="${H * 2}" style="width:${W}px;height:${H}px"></canvas><div class="overlay hidden" id="bkOver"></div></div>
+    <div class="brickSide">Next<canvas id="bkn" width="${cell * 4 * 2}" height="${cell * 4 * 2}" style="width:${cell * 4}px;height:${cell * 4}px"></canvas><span>Rows<b id="bkRows">0</b></span><span>Level<b id="bkLvl">1</b></span></div></div>
+    <div class="ctlRow" id="bkCtl"><button type="button" data-k="l">⬅️</button><button type="button" data-k="t">🔄</button><button type="button" data-k="r">➡️</button><button type="button" data-k="d">⬇️</button><button type="button" data-k="h">⏬</button></div>
+    <div class="arcNote">Tap the board to turn, swipe to slide, swipe down to drop.</div>`;
+  const cv = $('bkc'), g = cv.getContext('2d'), nx = $('bkn').getContext('2d'), over = $('bkOver');
+  g.scale(2, 2); nx.scale(2, 2);
+  const SHAPES = [[[1, 1, 1, 1]], [[1, 1], [1, 1]], [[0, 1, 0], [1, 1, 1]], [[0, 1, 1], [1, 1, 0]], [[1, 1, 0], [0, 1, 1]], [[1, 0, 0], [1, 1, 1]], [[0, 0, 1], [1, 1, 1]]];
+  const COLS = ['#ff8a65', '#4dd0e1', '#ffd54f', '#81c784', '#ba68c8', '#64b5f6', '#f06292', '#aed581'];
+  let board, piece, next, score, rows, level, timer = 0, alive = false, paused = false;
+  const make = () => { const m = SHAPES[Math.floor(Math.random() * SHAPES.length)].map(r => r.slice()); return { m, x: Math.floor((C - m[0].length) / 2), y: 0, c: COLS[Math.floor(Math.random() * COLS.length)] }; };
+  const fits = (m, x, y) => m.every((row, j) => row.every((v, i) => !v || (x + i >= 0 && x + i < C && y + j < R && (y + j < 0 || !board[y + j][x + i]))));
+  const turnM = m => m[0].map((_, i) => m.map(r => r[i]).reverse());
+  function brick(ctx, x, y, c, sz) { ctx.fillStyle = c; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x * sz + 1, y * sz + 1, sz - 2, sz - 2, sz * 0.22) : ctx.rect(x * sz + 1, y * sz + 1, sz - 2, sz - 2); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fillRect(x * sz + 3, y * sz + 3, sz - 6, sz * 0.22); }
+  function draw() {
+    g.clearRect(0, 0, W, H);
+    board.forEach((row, y) => row.forEach((c, x) => { if (c) brick(g, x, y, c, cell); }));
+    let gy = piece.y; while (fits(piece.m, piece.x, gy + 1)) gy++;   // a faint shadow shows where it will land
+    g.globalAlpha = 0.22; piece.m.forEach((row, j) => row.forEach((v, i) => { if (v) brick(g, piece.x + i, gy + j, piece.c, cell); })); g.globalAlpha = 1;
+    piece.m.forEach((row, j) => row.forEach((v, i) => { if (v) brick(g, piece.x + i, piece.y + j, piece.c, cell); }));
+    nx.clearRect(0, 0, cell * 4, cell * 4);
+    const ox = (4 - next.m[0].length) / 2, oy = (4 - next.m.length) / 2;
+    next.m.forEach((row, j) => row.forEach((v, i) => { if (v) brick(nx, ox + i, oy + j, next.c, cell); }));
+    $('arcScore').textContent = String(score); $('bkRows').textContent = rows; $('bkLvl').textContent = level;
+  }
+  function land() {
+    piece.m.forEach((row, j) => row.forEach((v, i) => { if (v && piece.y + j >= 0) board[piece.y + j][piece.x + i] = piece.c; }));
+    const full = board.filter(r => r.every(Boolean)).length;
+    if (full) {
+      board = board.filter(r => !r.every(Boolean)); while (board.length < R) board.unshift(Array(C).fill(0));
+      rows += full; score += [0, 100, 300, 500, 800][full] * level; level = 1 + Math.floor(rows / 10);
+      beep(full > 1 ? [660, 880, 1175] : [660, 880], 0.09, 0.05);
+    } else blip();
+    piece = next; next = make();
+    if (!fits(piece.m, piece.x, piece.y)) return end();
+  }
+  function tick() {
+    if (!alive || paused) return;
+    if (fits(piece.m, piece.x, piece.y + 1)) piece.y++; else land();
+    if (alive) { draw(); timer = setTimeout(tick, Math.max(90, 650 - (level - 1) * 55)); }
+  }
+  function act(k) {
+    if (!alive || paused) return;
+    if (k === 'l' && fits(piece.m, piece.x - 1, piece.y)) piece.x--;
+    else if (k === 'r' && fits(piece.m, piece.x + 1, piece.y)) piece.x++;
+    else if (k === 'd') { if (fits(piece.m, piece.x, piece.y + 1)) { piece.y++; score++; } }
+    else if (k === 'h') { while (fits(piece.m, piece.x, piece.y + 1)) { piece.y++; score += 2; } land(); if (!alive) return; clearTimeout(timer); timer = setTimeout(tick, 300); }
+    else if (k === 't') { const m = turnM(piece.m); for (const dx of [0, -1, 1, -2, 2]) if (fits(m, piece.x + dx, piece.y)) { piece.m = m; piece.x += dx; break; } }
+    draw();
+  }
+  function start() {
+    board = Array.from({ length: R }, () => Array(C).fill(0)); piece = make(); next = make(); score = 0; rows = 0; level = 1; alive = true; paused = false;
+    over.classList.add('hidden'); draw(); clearTimeout(timer); timer = setTimeout(tick, 500);
+  }
+  function end() {
+    alive = false; clearTimeout(timer); endTone(); draw();
+    const r = bestCheck('brickBest', score);
+    over.innerHTML = `<div>${r.better ? '🏆 New best!' : 'Game over'}</div><div>Score ${score} · ${rows} rows · Best ${r.best}</div><button type="button" class="arcBtn" id="bkAgain">🔁 Play again</button>`;
+    over.classList.remove('hidden'); $('bkAgain').onclick = start;
+  }
+  function pause() {
+    if (!alive || paused) return; paused = true; clearTimeout(timer);
+    over.innerHTML = '<div>⏸️ Paused</div><button type="button" class="arcBtn" id="bkGo">▶️ Carry on</button>'; over.classList.remove('hidden');
+    $('bkGo').onclick = () => { paused = false; over.classList.add('hidden'); timer = setTimeout(tick, 300); };
+  }
+  $('bkCtl').onclick = e => { const b = e.target.closest('[data-k]'); if (b) act(b.dataset.k); };
+  swipeOn(cv, (d, dx, dy) => { if (d[1] > 0) act('h'); else if (d[0]) for (let i = 0; i < Math.max(1, Math.round(Math.abs(dx) / cell)); i++) act(d[0] < 0 ? 'l' : 'r'); }, () => act('t'));
+  const unkeys = keysOn({ ArrowLeft: () => act('l'), ArrowRight: () => act('r'), ArrowDown: () => act('d'), ArrowUp: () => act('t'), ' ': () => act('h') });
+  const onHide = () => { if (document.hidden) pause(); };
+  document.addEventListener('visibilitychange', onHide);
+  arcStop = () => { alive = false; clearTimeout(timer); unkeys(); document.removeEventListener('visibilitychange', onHide); };
+  start();
+}
+
+/* Merge Up: slide the tiles; two the same join into their double */
+function mergeGame() {
+  arcOpen('🔢 Merge Up', '0');
+  $('arcBody').innerHTML = `<div class="mergeBox"><div class="mergeGrid" id="mgGrid"></div><div class="overlay hidden" id="mgOver"></div></div>
+    <div class="arcNote" id="mgNote">Swipe or use the arrows. Best: ${store.get('mergeBest', 0)}</div>
+    <div class="dpad" id="mgPad"><button type="button" class="u" data-d="0,-1">⬆️</button><button type="button" class="l" data-d="-1,0">⬅️</button><button type="button" class="d" data-d="0,1">⬇️</button><button type="button" class="r" data-d="1,0">➡️</button></div>`;
+  let grid, score, won, fresh = new Set(), merged = new Set();
+  const colour = v => { const k = Math.log2(v); return `hsl(${(k * 33 + 10) % 360} ${55 + Math.min(k, 9) * 3}% ${Math.max(48, 86 - k * 4)}%)`; };
+  function addTile() {
+    const empty = []; grid.forEach((v, i) => { if (!v) empty.push(i); });
+    if (!empty.length) return;
+    const i = empty[Math.floor(Math.random() * empty.length)]; grid[i] = Math.random() < 0.9 ? 2 : 4; fresh.add(i);
+  }
+  function draw() {
+    $('mgGrid').innerHTML = grid.map((v, i) => `<div class="mtile${v ? (fresh.has(i) ? ' n' : merged.has(i) ? ' m' : '') : ''}" style="${v ? `background:${colour(v)};${v >= 1024 ? 'font-size:clamp(14px,5.6vw,24px)' : ''}` : ''}">${v || ''}</div>`).join('');
+    $('arcScore').textContent = String(score); fresh.clear(); merged.clear();
+  }
+  const canMove = () => grid.some((v, i) => !v || (i % 4 < 3 && grid[i + 1] === v) || (i < 12 && grid[i + 4] === v));
+  function move(d) {
+    if ($('mgOver').classList.contains('hidden') === false) return;
+    let moved = false;
+    for (let a = 0; a < 4; a++) {
+      const idx = [0, 1, 2, 3].map(b => d[0] ? a * 4 + (d[0] > 0 ? 3 - b : b) : (d[1] > 0 ? 3 - b : b) * 4 + a);   // the line, in the direction of travel
+      const vals = idx.map(i => grid[i]).filter(Boolean), out = [], hit = [];
+      for (let k = 0; k < vals.length; k++) {
+        if (vals[k] === vals[k + 1]) { out.push(vals[k] * 2); hit.push(out.length - 1); score += vals[k] * 2; k++; } else out.push(vals[k]);
+      }
+      while (out.length < 4) out.push(0);
+      idx.forEach((i, k) => { if (grid[i] !== out[k]) moved = true; grid[i] = out[k]; });
+      hit.forEach(k => merged.add(idx[k]));
+    }
+    if (!moved) return;
+    blip(); addTile(); draw();
+    if (!won && grid.some(v => v >= 2048)) { won = true; confetti(); $('mgNote').textContent = '🏆 You made 2048! Keep going for more.'; }
+    if (!canMove()) {
+      const r = bestCheck('mergeBest', score); endTone();
+      $('mgOver').innerHTML = `<div>${r.better ? '🏆 New best!' : 'No more moves'}</div><div>Score ${score} · Best ${r.best}</div><button type="button" class="arcBtn" id="mgAgain">🔁 Play again</button>`;
+      $('mgOver').classList.remove('hidden'); $('mgAgain').onclick = start;
+    }
+  }
+  function start() { grid = Array(16).fill(0); score = 0; won = false; addTile(); addTile(); $('mgOver').classList.add('hidden'); draw(); }
+  $('mgPad').onclick = e => { const b = e.target.closest('[data-d]'); if (b) move(b.dataset.d.split(',').map(Number)); };
+  swipeOn($('mgGrid'), d => move(d));
+  const unkeys = keysOn({ ArrowLeft: () => move([-1, 0]), ArrowRight: () => move([1, 0]), ArrowUp: () => move([0, -1]), ArrowDown: () => move([0, 1]) });
+  arcStop = () => { unkeys(); if (score) bestCheck('mergeBest', score); };
+  start();
+}
+
+/* Bug Bop: tap the bugs before they hide; bees lose points */
+function bopGame() {
+  arcOpen('🐞 Bug Bop', '0');
+  $('arcBody').innerHTML = `<div class="arcNote" id="bopNote">30 seconds. Tap bugs 🐞🐛🐜🦗, not bees 🐝!</div><div style="position:relative"><div class="bopGrid" id="bopGrid">${Array.from({ length: 9 }, (_, i) => `<button type="button" class="hole" data-h="${i}"></button>`).join('')}</div><div class="overlay hidden" id="bopOver"></div></div>
+    <button type="button" class="arcBtn" id="bopGo">▶️ Start</button>`;
+  const holes = [...$('bopGrid').children], BUGS = ['🐞', '🐛', '🐜', '🦗'];
+  let score = 0, timers = [], live = false, t0 = 0, spawnT = 0, clockT = 0;
+  const up = new Map();   // hole -> { bee, timer }
+  function clearHole(i) { const u = up.get(i); if (u) clearTimeout(u.timer); up.delete(i); holes[i].innerHTML = ''; holes[i].className = 'hole'; }
+  function spawn() {
+    if (!live) return;
+    const free = holes.map((_, i) => i).filter(i => !up.has(i));
+    if (free.length) {
+      const i = free[Math.floor(Math.random() * free.length)], bee = Math.random() < 0.22, left = 30 - (Date.now() - t0) / 1000;
+      holes[i].innerHTML = `<span>${bee ? '🐝' : BUGS[Math.floor(Math.random() * BUGS.length)]}</span>`;
+      up.set(i, { bee, timer: setTimeout(() => clearHole(i), 650 + left * 12) });
+    }
+    spawnT = setTimeout(spawn, 380 + Math.random() * 380);
+  }
+  function start() {
+    score = 0; live = true; t0 = Date.now(); $('arcScore').textContent = '0'; $('bopOver').classList.add('hidden'); $('bopGo').classList.add('hidden');
+    holes.forEach((_, i) => clearHole(i)); spawn();
+    clockT = setInterval(() => {
+      const left = Math.max(0, 30 - Math.floor((Date.now() - t0) / 1000));
+      $('bopNote').textContent = `⏱️ ${left}s left`;
+      if (left <= 0) end();
+    }, 250);
+  }
+  function end() {
+    live = false; clearTimeout(spawnT); clearInterval(clockT); holes.forEach((_, i) => clearHole(i)); endTone();
+    const r = bestCheck('bopBest', score);
+    $('bopOver').innerHTML = `<div>${r.better ? '🏆 New best!' : '⏱️ Time\'s up!'}</div><div>Score ${score} · Best ${r.best}</div><button type="button" class="arcBtn" id="bopAgain">🔁 Play again</button>`;
+    $('bopOver').classList.remove('hidden'); $('bopAgain').onclick = start;
+  }
+  $('bopGrid').addEventListener('pointerdown', e => {
+    const h = e.target.closest('.hole'); if (!h || !live) return;
+    const i = +h.dataset.h, u = up.get(i); if (!u) return;
+    clearTimeout(u.timer); up.delete(i);
+    if (u.bee) { score = Math.max(0, score - 2); h.classList.add('ouch'); beep([220], 0.15, 0.06); }
+    else { score++; h.classList.add('hit'); beep([1175], 0.05, 0.05); }
+    $('arcScore').textContent = String(score);
+    setTimeout(() => { if (!up.has(i)) { h.innerHTML = ''; h.className = 'hole'; } }, 300);
+  });
+  $('bopGo').onclick = start;
+  const onHide = () => { if (document.hidden && live) end(); };
+  document.addEventListener('visibilitychange', onHide);
+  arcStop = () => { live = false; clearTimeout(spawnT); clearInterval(clockT); up.forEach(u => clearTimeout(u.timer)); document.removeEventListener('visibilitychange', onHide); };
+}
+
+/* Copy Me: the pads light up in a pattern that grows; copy it */
+function copyGame() {
+  const PADS = [['#e53935', 329.63], ['#1e88e5', 392], ['#43a047', 493.88], ['#fdd835', 587.33]];
+  arcOpen('🎵 Copy Me', '');
+  $('arcBody').innerHTML = `<div class="arcNote" id="cpNote">Watch, listen, then copy. Best: level ${store.get('copyBest', 0)}</div>
+    <div style="position:relative"><div class="copyGrid" id="cpGrid">${PADS.map(([c], i) => `<button type="button" class="pad" data-p="${i}" style="background:${c};color:${c}" disabled></button>`).join('')}</div><div class="overlay hidden" id="cpOver"></div></div>
+    <button type="button" class="arcBtn" id="cpGo">▶️ Start</button>`;
+  const pads = [...$('cpGrid').children];
+  let seq = [], pos = 0, live = false, showing = false, timers = [];
+  const later = (f, ms) => timers.push(setTimeout(f, ms));
+  const lock = on => pads.forEach(p => { p.disabled = on; });
+  function flash(i, ms) { pads[i].classList.add('lit'); voice('marimba', PADS[i][1], 0, ms / 1000 + 0.2, 0.35); later(() => pads[i].classList.remove('lit'), ms); }
+  function show() {
+    showing = true; lock(true); pos = 0;
+    $('cpNote').textContent = `Level ${seq.length}: watch…`; $('arcScore').textContent = `Level ${seq.length}`;
+    const gap = Math.max(260, 620 - seq.length * 25);
+    seq.forEach((p, k) => later(() => flash(p, gap * 0.7), 500 + k * gap));
+    later(() => { showing = false; lock(false); $('cpNote').textContent = 'Your turn!'; }, 500 + seq.length * gap);
+  }
+  function grow() { seq.push(Math.floor(Math.random() * 4)); show(); }
+  function start() { timers.forEach(clearTimeout); timers = []; seq = []; live = true; $('cpOver').classList.add('hidden'); $('cpGo').classList.add('hidden'); grow(); }
+  function end() {
+    live = false; lock(true); endTone();
+    const level = seq.length - 1, r = bestCheck('copyBest', level);
+    $('cpOver').innerHTML = `<div>${r.better ? '🏆 New best!' : 'Oops!'}</div><div>You got to level ${level} · Best ${r.best}</div><button type="button" class="arcBtn" id="cpAgain">🔁 Play again</button>`;
+    $('cpOver').classList.remove('hidden'); $('cpAgain').onclick = start;
+  }
+  $('cpGrid').addEventListener('pointerdown', e => {
+    const b = e.target.closest('.pad'); if (!b || !live || showing || b.disabled) return;
+    const i = +b.dataset.p; flash(i, 220);
+    if (i !== seq[pos]) return end();
+    pos++;
+    if (pos === seq.length) { lock(true); $('cpNote').textContent = '✅ Yes!'; later(grow, 700); }
+  });
+  $('cpGo').onclick = start;
+  arcStop = () => { live = false; timers.forEach(clearTimeout); };
+}
+
+/* Doodle: draw a picture and send it in the chat as a photo */
+function doodle(num) {
+  const W = Math.min(window.innerWidth - 32, 360), H = Math.min(Math.round(W * 1.15), window.innerHeight - 330);
+  arcOpen('✏️ Doodle for ' + chatName(num), '', true);
+  const COLS = ['#212121', '#e53935', '#fb8c00', '#fdd835', '#43a047', '#1e88e5', '#8e24aa', '#ec407a', '#795548', '#ffffff'];
+  $('arcBody').innerHTML = `<div class="doodleBox"><canvas id="ddc" width="${W * 2}" height="${H * 2}" style="width:${W}px;height:${H}px"></canvas></div>
+    <div class="palette" id="ddCol">${COLS.map((c, i) => `<button type="button" data-c="${c}" class="${i ? '' : 'on'}" style="background:${c};${c === '#ffffff' ? 'box-shadow:inset 0 0 0 1px #999' : ''}" aria-label="colour"></button>`).join('')}</div>
+    <div class="sizes" id="ddSize">${[3, 8, 16].map((z, i) => `<button type="button" data-z="${z}" class="${i === 1 ? 'on' : ''}"><i style="width:${z + 2}px;height:${z + 2}px"></i></button>`).join('')}</div>
+    <div class="doodleActs"><button type="button" id="ddUndo">↩️ Undo</button><button type="button" id="ddClear">🗑️ Clear</button><button type="button" class="arcBtn" id="ddSend">📤 Send</button></div>`;
+  const cv = $('ddc'), g = cv.getContext('2d');
+  g.scale(2, 2); g.lineCap = g.lineJoin = 'round';
+  let colour = COLS[0], size = 8, strokes = [], cur = null;
+  function paint() {
+    g.fillStyle = '#fff'; g.fillRect(0, 0, W, H);
+    strokes.forEach(s2 => {
+      g.strokeStyle = s2.c; g.fillStyle = s2.c; g.lineWidth = s2.z;
+      if (s2.p.length === 1) { g.beginPath(); g.arc(s2.p[0][0], s2.p[0][1], s2.z / 2, 0, 7); g.fill(); return; }
+      g.beginPath(); g.moveTo(s2.p[0][0], s2.p[0][1]); s2.p.forEach(q => g.lineTo(q[0], q[1])); g.stroke();
+    });
+  }
+  const at = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  cv.onpointerdown = e => { cv.setPointerCapture(e.pointerId); cur = { c: colour, z: size, p: [at(e)] }; strokes.push(cur); paint(); };
+  cv.onpointermove = e => { if (!cur) return; cur.p.push(at(e)); paint(); };
+  cv.onpointerup = cv.onpointercancel = () => { cur = null; };
+  $('ddCol').onclick = e => { const b = e.target.closest('[data-c]'); if (!b) return; colour = b.dataset.c; $('ddCol').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); };
+  $('ddSize').onclick = e => { const b = e.target.closest('[data-z]'); if (!b) return; size = +b.dataset.z; $('ddSize').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); };
+  $('ddUndo').onclick = () => { strokes.pop(); paint(); };
+  $('ddClear').onclick = () => { strokes = []; paint(); };
+  $('ddSend').onclick = () => {
+    if (!strokes.length) return toast('Draw something first ✏️');
+    sendMedia(num, 'photo', cv.toDataURL('image/jpeg', 0.82), { text: '✏️' });
+    store.set('doodles', store.get('doodles', 0) + 1); trophyCheck();
+    arcClose();
+    if (links[num] && links[num].open) toast('Doodle sent!');   // otherwise the "Will send when…" note stays
+  };
+  paint();
+  arcStop = () => { strokes = []; };
+}
+
+/* Emoji rain: an emoji-only message rains down the screen */
+function emojiRain(text) {
+  if (!fxOn() || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+  const parts = [...(window.Intl && Intl.Segmenter ? new Intl.Segmenter().segment(text) : text)].map(x => x.segment || x).filter(x => x.trim());
+  if (!parts.length) return;
+  for (let i = 0; i < 28; i++) {
+    const el = document.createElement('i'); el.className = 'erain'; el.textContent = parts[i % parts.length];
+    const t = 2.2 + Math.random() * 1.6, d = Math.random() * 1.2;
+    el.style.cssText = `left:${Math.random() * 96}vw;font-size:${22 + Math.random() * 20}px;--t:${t.toFixed(2)}s;--d:${d.toFixed(2)}s;--x:${(Math.random() * 60 - 30).toFixed(0)}px;--r:${(Math.random() * 120 - 60).toFixed(0)}deg`;
+    document.body.appendChild(el); setTimeout(() => el.remove(), (t + d) * 1000 + 100);
+  }
+}
+
+/* Trophies: won by playing, kept per person on this device */
+const TROPHIES = [
+  ['snake5', '🐍', 'Hungry snake', 'Score 5 in Snake', () => store.get('snakeBest', 0) >= 5],
+  ['snake20', '🐉', 'Super snake', 'Score 20 in Snake', () => store.get('snakeBest', 0) >= 20],
+  ['mem', '🃏', 'Sharp memory', 'Win Memory match', () => [12, 16, 20].some(n => store.get('memBest' + n, 0) > 0)],
+  ['memhard', '🧠', 'Memory master', 'Win Memory match on Hard', () => store.get('memBest20', 0) > 0],
+  ['brick1k', '🧱', 'Brick builder', 'Score 1,000 in Brick Fall', () => store.get('brickBest', 0) >= 1000],
+  ['brick5k', '🏗️', 'Brick boss', 'Score 5,000 in Brick Fall', () => store.get('brickBest', 0) >= 5000],
+  ['merge1k', '🔢', 'Merger', 'Score 1,000 in Merge Up', () => store.get('mergeBest', 0) >= 1000],
+  ['merge5k', '💎', 'Big merger', 'Score 5,000 in Merge Up', () => store.get('mergeBest', 0) >= 5000],
+  ['bop20', '🐞', 'Bug buster', 'Score 20 in Bug Bop', () => store.get('bopBest', 0) >= 20],
+  ['copy5', '🎵', 'Copy cat', 'Reach level 5 in Copy Me', () => store.get('copyBest', 0) >= 5],
+  ['copy10', '🎼', 'Super listener', 'Reach level 10 in Copy Me', () => store.get('copyBest', 0) >= 10],
+  ['word3', '🔤', 'Word wizard', 'Guess 3 words in Word Guess', () => store.get('wordWins', 0) >= 3],
+  ['doodle', '🎨', 'Artist', 'Send a doodle', () => store.get('doodles', 0) >= 1],
+  ['ttt', '❌', 'Tic-tac-champ', 'Win tic-tac-toe in a chat', () => store.get('tttWins', 0) >= 1]
+];
+const trophiesEarned = () => TROPHIES.filter(t => { try { return t[4](); } catch (e) { return false; } }).map(t => t[0]);
+function trophyCheck() {
+  const had = store.get('trophies', []), now = trophiesEarned(), fresh = now.filter(id => !had.includes(id));
+  if (!fresh.length) return;
+  store.set('trophies', now);
+  const t = TROPHIES.find(x => x[0] === fresh[0]);
+  setTimeout(() => { toast(`🏆 New trophy: ${t[1]} ${t[2]}!`, 3500); beep([784, 988, 1319], 0.12, 0.06); }, 900);
+}
+function trophyShelf() {
+  const won = trophiesEarned();
+  arcOpen('🏆 Trophies', `${won.length}/${TROPHIES.length}`);
+  $('arcBody').innerHTML = `<div class="trophies">${TROPHIES.map(([id, ic, name, how]) => `<div class="trophy ${won.includes(id) ? '' : 'locked'}"><i>${ic}</i><b>${name}</b><span>${won.includes(id) ? '✅ Won!' : how}</span></div>`).join('')}</div>`;
+  arcStop = null;
+}
+
+/* Word Guess: guess the word a letter at a time; each wrong letter pops a balloon */
+const WORDS = [['APPLE', '🍎'], ['TIGER', '🐯'], ['ROCKET', '🚀'], ['BANANA', '🍌'], ['PIZZA', '🍕'], ['RAINBOW', '🌈'], ['DOLPHIN', '🐬'], ['ROBOT', '🤖'], ['GUITAR', '🎸'], ['CASTLE', '🏰'],
+  ['PENGUIN', '🐧'], ['TRAIN', '🚆'], ['CAMERA', '📷'], ['DRAGON', '🐉'], ['FLOWER', '🌸'], ['ZEBRA', '🦓'], ['MONKEY', '🐒'], ['TURTLE', '🐢'], ['PLANET', '🪐'], ['CHEESE', '🧀'],
+  ['ELEPHANT', '🐘'], ['UMBRELLA', '☂️'], ['VOLCANO', '🌋'], ['OCTOPUS', '🐙'], ['BICYCLE', '🚲'], ['PUMPKIN', '🎃'], ['RABBIT', '🐇'], ['SNOWMAN', '⛄'], ['CARROT', '🥕'], ['DINOSAUR', '🦖']];
+function wordGame() {
+  const [word, hint] = WORDS[Math.floor(Math.random() * WORDS.length)], LIVES = 6;
+  const tried = new Set();
+  let misses = 0, over = false;
+  arcOpen('🔤 Word Guess', `Won: ${store.get('wordWins', 0)}`);
+  $('arcBody').innerHTML = `<div class="wgHint">${hint}</div><div class="arcNote">Clue: it's this! ${word.length} letters.</div>
+    <div class="wgWord" id="wgWord"></div><div class="wgLives" id="wgLives"></div><div class="arcNote" id="wgNote"></div>
+    <div class="wgKeys" id="wgKeys">${[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(c => `<button type="button" data-l="${c}">${c}</button>`).join('')}</div>`;
+  function draw() {
+    $('wgWord').innerHTML = [...word].map(c => `<span>${tried.has(c) || over ? c : ''}</span>`).join('');
+    $('wgLives').textContent = '🎈'.repeat(LIVES - misses) + '💥'.repeat(misses);
+  }
+  function guess(c) {
+    if (over || tried.has(c)) return;
+    tried.add(c);
+    const b = $('wgKeys').querySelector(`[data-l="${c}"]`);
+    if (word.includes(c)) { if (b) b.classList.add('yes'); beep([880], 0.06, 0.05); }
+    else { if (b) b.classList.add('no'); misses++; beep([196], 0.15, 0.06); }
+    const won = [...word].every(x => tried.has(x)), lost = misses >= LIVES;
+    if (won || lost) {
+      over = true;
+      if (won) { store.set('wordWins', store.get('wordWins', 0) + 1); confetti(); trophyCheck(); $('arcScore').textContent = `Won: ${store.get('wordWins', 0)}`; }
+      else endTone();
+      $('wgNote').innerHTML = (won ? '🎉 You got it!' : `💥 Out of balloons. It was ${word}.`) + ' <button type="button" class="arcBtn" id="wgAgain" style="margin-left:6px">🔁 Next word</button>';
+      $('wgAgain').onclick = () => { arcStop && arcStop(); wordGame(); };
+    }
+    draw();
+  }
+  $('wgKeys').onclick = e => { const b = e.target.closest('[data-l]'); if (b) guess(b.dataset.l); };
+  const onKey = e => { if (/^[a-z]$/i.test(e.key) && !e.ctrlKey && !e.metaKey) { e.preventDefault(); guess(e.key.toUpperCase()); } };
+  document.addEventListener('keydown', onKey);
+  arcStop = () => document.removeEventListener('keydown', onKey);
+  draw();
 }
 
 /* ---------- settings ---------- */
@@ -2929,7 +3362,7 @@ function wireGames(box, games) {
     if (g.n !== me.num || g.b[i] !== '.' || tttWinner(g.b)) return;
     const nb = g.b.slice(0, i) + meMark + g.b.slice(i + 1), other = g.x === me.num ? g.o : g.x, w = tttWinner(nb);
     sendGame(threadNum, Object.assign({}, g, { b: nb, n: other }), w ? (w.who === 'd' ? '🎮 Tic-tac-toe: a draw!' : '🎮 Tic-tac-toe: I won!') : '🎮 Tic-tac-toe: your turn!');
-    if (w && w.who === meMark) confetti();
+    if (w && w.who === meMark) { confetti(); store.set('tttWins', store.get('tttWins', 0) + 1); trophyCheck(); }
   });
   box.querySelectorAll('[data-rps]').forEach(b => b.onclick = e => {
     e.stopPropagation();
@@ -3151,7 +3584,15 @@ function trimMedia() {
   all.slice(40).forEach(m => { delete m.data; m.gone = true; });
 }
 if ($('micBtn')) $('micBtn').onclick = () => { if (rec) stopRec(false); else startRec(); };
-if ($('photoBtn')) $('photoBtn').onclick = () => { if (threadNum) $('photoIn').click(); };
+if ($('photoBtn')) $('photoBtn').onclick = () => {
+  if (!threadNum) return;
+  const num = threadNum;
+  modal(`<h3>Send a picture</h3><div class="gamepick"><button type="button" class="gloss g-glass" style="padding:14px" id="pkPhoto">📷 A photo from this phone</button>
+    <button type="button" class="gloss g-glass" style="padding:14px" id="pkDraw">✏️ Draw a picture</button><button type="button" class="plain" id="pkNo">Cancel</button></div>`);
+  $('pkNo').onclick = closeModal;
+  $('pkPhoto').onclick = () => { closeModal(); $('photoIn').click(); };
+  $('pkDraw').onclick = () => { closeModal(); doodle(num); };
+};
 if ($('photoIn')) $('photoIn').onchange = async () => {
   const f = $('photoIn').files && $('photoIn').files[0];
   $('photoIn').value = '';
