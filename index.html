@@ -863,6 +863,21 @@ body.tv-matrix{--ink:#c8ffd4;--dim:#5fd47a;--faint:#3a8a4c;--edge:rgba(0,255,90,
 .hgKeys{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:6px}
 .hgKeys button{height:32px;border-radius:8px;background:rgba(127,127,127,.22);font-weight:800;font-size:14px;color:inherit}
 .hgKeys button.yes{background:#43a047;color:#fff}.hgKeys button.no{opacity:.3}
+.dotsGrid{display:grid;grid-template-columns:repeat(3,10px 52px) 10px;grid-template-rows:repeat(3,10px 52px) 10px;margin:6px 0}
+.dotsGrid .dot{width:10px;height:10px;border-radius:50%;background:currentColor}
+.dotsGrid .ln{padding:0;border-radius:5px;background:rgba(127,127,127,.18);margin:0}
+.dotsGrid .ln.h{height:10px;width:52px}.dotsGrid .ln.v{width:10px;height:52px}
+.dotsGrid .ln:not(:disabled):hover,.dotsGrid .ln:not(:disabled):active{background:rgba(127,127,127,.5)}
+.dotsGrid .ln.a{background:#e53935}.dotsGrid .ln.b{background:#1e88e5}
+.dotsGrid .box{display:grid;place-items:center;font-style:normal;font-size:24px;border-radius:6px}
+.dotsGrid .box.a{background:rgba(229,57,53,.22)}.dotsGrid .box.b{background:rgba(30,136,229,.22)}
+.dotsScore{font-weight:800;font-size:14px}
+.oddGrid{display:grid;gap:6px;width:min(88vw,340px)}
+.oddGrid button{aspect-ratio:1;border-radius:12px;background:rgba(127,127,127,.15);line-height:1;padding:0}
+.oddGrid button.found{background:#43a047}.oddGrid button.miss{animation:cardshake .3s}
+.typeWord{font-size:38px;font-weight:900;letter-spacing:1px;min-height:48px}
+.typeWord .ok{color:#2e7d32}.typeWord .bad{color:#e53935}
+.typeIn{width:min(88vw,320px);padding:14px;border-radius:14px;border:2px solid var(--t-line,rgba(127,127,127,.4));background:rgba(127,127,127,.12);font-size:22px;text-align:center;color:var(--ink);outline:none}
 .four{display:grid;grid-template-columns:repeat(7,32px);gap:3px;padding:5px;border-radius:12px;background:#1565c0;margin:4px 0}
 .four button{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.9);font-size:22px;line-height:1;padding:0}
 .four button.win{box-shadow:0 0 0 3px #ffd600}
@@ -2376,11 +2391,13 @@ function arcMenu() {
     <button type="button" data-arc="merge"><i>🔢</i><span>Merge Up<small>Slide the tiles; two the same join into one double. Best: ${store.get('mergeBest', 0)}</small></span></button>
     <button type="button" data-arc="bop"><i>🐞</i><span>Bug Bop<small>Tap the bugs before they hide, but not the bees! Best: ${store.get('bopBest', 0)}</small></span></button>
     <button type="button" data-arc="copy"><i>🎵</i><span>Copy Me<small>Watch the pads light up, then copy the pattern. Best: level ${store.get('copyBest', 0)}</small></span></button>
+    <button type="button" data-arc="odd"><i>👀</i><span>Spot the odd one<small>Find the one that's different, quickly! Best: ${store.get('oddBest', 0)}</small></span></button>
+    <button type="button" data-arc="type"><i>⌨️</i><span>Typing race<small>Type as many words as you can in 45 seconds. Best: ${store.get('typeBest', 0)}</small></span></button>
     <button type="button" data-arc="math"><i>➕</i><span>Maths Sprint<small>Answer as many sums as you can in 60 seconds. Best: ${store.get('mathBest', 0)}</small></span></button>
     <button type="button" data-arc="word"><i>🔤</i><span>Word Guess<small>Guess the word one letter at a time. Words guessed: ${store.get('wordWins', 0)}</small></span></button>
     <button type="button" data-arc="trophy"><i>🏆</i><span>Trophies<small>${trophiesEarned().length} of ${TROPHIES.length} won</small></span></button>
   </div><div class="arcNote">Want to play with someone? Open a chat and tap 🎮.</div>`;
-  const GAMES_ARC = { snake: snakeGame, memory: memoryGame, brick: brickGame, merge: mergeGame, bop: bopGame, copy: copyGame, word: wordGame, math: mathGame, trophy: trophyShelf };
+  const GAMES_ARC = { snake: snakeGame, memory: memoryGame, brick: brickGame, merge: mergeGame, bop: bopGame, copy: copyGame, word: wordGame, math: mathGame, odd: oddGame, type: typeGame, trophy: trophyShelf };
   $('arcBody').querySelectorAll('[data-arc]').forEach(b => b.onclick = () => GAMES_ARC[b.dataset.arc]());
 }
 $('arcadeBtn').onclick = () => { if (me && !call && !gcall) arcMenu(); };
@@ -2813,7 +2830,10 @@ const TROPHIES = [
   ['ttt', '❌', 'Tic-tac-champ', 'Win tic-tac-toe in a chat', () => store.get('tttWins', 0) >= 1],
   ['four', '🔴', 'Four star', 'Win four in a row in a chat', () => store.get('fourWins', 0) >= 1],
   ['hang', '🎈', 'Mind reader', "Guess someone's secret word", () => store.get('hangWins', 0) >= 1],
-  ['math20', '➕', 'Number ninja', 'Score 20 in Maths Sprint', () => store.get('mathBest', 0) >= 20]
+  ['math20', '➕', 'Number ninja', 'Score 20 in Maths Sprint', () => store.get('mathBest', 0) >= 20],
+  ['dots', '⚫', 'Box boss', 'Win dots and boxes in a chat', () => store.get('dotsWins', 0) >= 1],
+  ['odd15', '👀', 'Eagle eyes', 'Score 15 in Spot the odd one', () => store.get('oddBest', 0) >= 15],
+  ['type20', '⌨️', 'Speedy fingers', 'Type 20 words in Typing race', () => store.get('typeBest', 0) >= 20]
 ];
 const trophiesEarned = () => TROPHIES.filter(t => { try { return t[4](); } catch (e) { return false; } }).map(t => t[0]);
 function trophyCheck() {
@@ -2912,6 +2932,80 @@ function mathGame() {
   const onHide = () => { if (document.hidden && live) end(); };
   document.addEventListener('visibilitychange', onHide);
   arcStop = () => { live = false; clearInterval(clock); clearTimeout(wait); document.removeEventListener('visibilitychange', onHide); };
+}
+
+/* Spot the odd one: one emoji in the grid is different; the grid grows as you go */
+const ODD_PAIRS = [['😀', '😃'], ['🍎', '🍅'], ['🐱', '🐯'], ['⭐', '🌟'], ['🍊', '🍋'], ['🚗', '🚙'], ['🐟', '🐠'], ['🌷', '🌹'], ['🐶', '🐺'], ['🍩', '🥯'], ['🌕', '🌝'], ['🐸', '🐢'], ['🍇', '🫐'], ['⚽', '🏀'], ['🙂', '🙃']];
+function oddGame() {
+  arcOpen('👀 Spot the odd one', '0');
+  $('arcBody').innerHTML = `<div class="arcNote" id="odNote">30 seconds. Tap the one that's different!</div><div class="oddGrid" id="odGrid"></div><button type="button" class="arcBtn" id="odGo">▶️ Start</button>`;
+  let score = 0, live = false, t0 = 0, clock = 0, odd = -1, nxt = 0;
+  function round() {
+    const n = Math.min(7, 3 + Math.floor(score / 3)), pair = ODD_PAIRS[Math.floor(Math.random() * ODD_PAIRS.length)], flip = Math.random() < 0.5;
+    const [main, other] = flip ? [pair[1], pair[0]] : pair;
+    odd = Math.floor(Math.random() * n * n);
+    $('odGrid').style.gridTemplateColumns = `repeat(${n},1fr)`;
+    $('odGrid').innerHTML = Array.from({ length: n * n }, (_, i) => `<button type="button" data-i="${i}" style="font-size:${Math.floor(260 / n)}px">${i === odd ? other : main}</button>`).join('');
+  }
+  function start() {
+    score = 0; live = true; t0 = Date.now(); $('arcScore').textContent = '0'; $('odGo').classList.add('hidden'); round();
+    clearInterval(clock);
+    clock = setInterval(() => { const left = Math.max(0, 30 - Math.floor((Date.now() - t0) / 1000)); $('odNote').textContent = `⏱️ ${left}s left`; if (left <= 0) end(); }, 250);
+  }
+  function end() {
+    live = false; clearInterval(clock); clearTimeout(nxt); endTone();
+    const r = bestCheck('oddBest', score);
+    $('odGrid').innerHTML = ''; $('odNote').textContent = `${r.better ? '🏆 New best! ' : "⏱️ Time's up! "}You found ${score} · Best ${r.best}`;
+    $('odGo').textContent = '🔁 Play again'; $('odGo').classList.remove('hidden');
+  }
+  $('odGrid').onclick = e => {
+    const b = e.target.closest('[data-i]'); if (!b || !live || nxt) return;
+    if (+b.dataset.i === odd) { score++; $('arcScore').textContent = String(score); b.classList.add('found'); beep([880, 1175], 0.06, 0.05); nxt = setTimeout(() => { nxt = 0; if (live) round(); }, 250); }
+    else { b.classList.remove('miss'); void b.offsetWidth; b.classList.add('miss'); beep([196], 0.1, 0.05); t0 -= 2000; }   // a wrong tap costs 2 seconds
+  };
+  $('odGo').onclick = start;
+  const onHide = () => { if (document.hidden && live) end(); };
+  document.addEventListener('visibilitychange', onHide);
+  arcStop = () => { live = false; clearInterval(clock); clearTimeout(nxt); document.removeEventListener('visibilitychange', onHide); };
+}
+
+/* Typing race: type the word shown, as many as possible in 45 seconds */
+function typeGame() {
+  const pool = WORDS.map(w => w[0].toLowerCase()).concat(['cat', 'dog', 'sun', 'moon', 'star', 'tree', 'fish', 'bird', 'cake', 'ball', 'book', 'frog', 'kite', 'rain', 'snow', 'ship', 'lion', 'duck', 'milk', 'bus']);
+  arcOpen('⌨️ Typing race', '0');
+  $('arcBody').innerHTML = `<div class="arcNote" id="tyNote">45 seconds. Type each word, then press space or Enter.</div><div class="typeWord" id="tyWord"></div>
+    <input class="typeIn" id="tyIn" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" disabled placeholder="type here">
+    <button type="button" class="arcBtn" id="tyGo">▶️ Start</button>`;
+  let score = 0, live = false, t0 = 0, clock = 0, word = '';
+  const pick = () => { let w; do { w = pool[Math.floor(Math.random() * pool.length)]; } while (w === word); word = w; show(''); };
+  function show(typed) {
+    $('tyWord').innerHTML = [...word].map((c, i) => `<span class="${i < typed.length ? (typed[i] === c ? 'ok' : 'bad') : ''}">${c}</span>`).join('');
+  }
+  function start() {
+    score = 0; live = true; t0 = Date.now(); $('arcScore').textContent = '0'; $('tyGo').classList.add('hidden');
+    const inp = $('tyIn'); inp.disabled = false; inp.value = ''; inp.focus(); pick();
+    clearInterval(clock);
+    clock = setInterval(() => { const left = Math.max(0, 45 - Math.floor((Date.now() - t0) / 1000)); $('tyNote').textContent = `⏱️ ${left}s left`; if (left <= 0) end(); }, 250);
+  }
+  function end() {
+    live = false; clearInterval(clock); $('tyIn').disabled = true; $('tyIn').blur(); endTone();
+    const r = bestCheck('typeBest', score);
+    $('tyNote').textContent = `${r.better ? '🏆 New best! ' : "⏱️ Time's up! "}${score} words · Best ${r.best}`; $('tyWord').textContent = '';
+    $('tyGo').textContent = '🔁 Play again'; $('tyGo').classList.remove('hidden');
+  }
+  function check(done) {
+    if (!live) return;
+    const v = $('tyIn').value.trim().toLowerCase();
+    if (v === word) { score++; $('arcScore').textContent = String(score); beep([880], 0.05, 0.05); $('tyIn').value = ''; pick(); }
+    else if (done) { beep([196], 0.1, 0.05); $('tyIn').value = ''; show(''); }
+    else show(v);
+  }
+  $('tyIn').oninput = () => { if (/\s$/.test($('tyIn').value)) check(true); else check(false); };
+  $('tyIn').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); check(true); } };
+  $('tyGo').onclick = start;
+  const onHide = () => { if (document.hidden && live) end(); };
+  document.addEventListener('visibilitychange', onHide);
+  arcStop = () => { live = false; clearInterval(clock); document.removeEventListener('visibilitychange', onHide); };
 }
 
 /* ---------- settings ---------- */
@@ -3356,7 +3450,10 @@ window.addEventListener('beforeunload', () => { if (call) send({ t: 'end' }); })
 // So moves travel every way messages do (straight to the other phone, or through the online inbox),
 // and a chat shows each game once, as a board, at the place of its newest move.
 const GMARK = '\n§GAME§';
-const GAMES = { ttt: '❌⭕ Tic-tac-toe', rps: '✊✋✌️ Rock paper scissors', hang: '🎈 Hangman', four: '🔴🟡 Four in a row' };
+const GAMES = { ttt: '❌⭕ Tic-tac-toe', rps: '✊✋✌️ Rock paper scissors', hang: '🎈 Hangman', four: '🔴🟡 Four in a row', dots: '⚫ Dots and boxes' };
+// dots and boxes: 3x3 boxes. Edges 0-11 are the lines across (4 rows of 3), 12-23 the lines down (3 rows of 4).
+// e says who drew each edge (a or b), o who owns each box.
+const DOTS_BOX = Array.from({ length: 9 }, (_, i) => { const r = Math.floor(i / 3), c = i % 3; return [r * 3 + c, (r + 1) * 3 + c, 12 + r * 4 + c, 12 + r * 4 + c + 1]; });
 // hangman's secret word is stored back to front and encoded, so it isn't readable at a glance in the chat data
 const hangEnc = w => btoa([...w].reverse().join(''));
 const hangDec = e => { try { const w = [...atob(e)].reverse().join(''); return /^[A-Z]{3,12}$/.test(w) ? w : null; } catch (x) { return null; } };
@@ -3379,6 +3476,7 @@ function gameOf(text) {
     if (!isNum(g.s) || !isNum(g.p) || typeof g.w !== 'string' || !hangDec(g.w) || typeof g.t !== 'string' || !/^[A-Z]{0,26}$/.test(g.t)) return null;
     return { g: g.g, k: 'hang', s: g.s, p: g.p, w: g.w, t: g.t };
   }
+  if (g.k === 'dots') return typeof g.e === 'string' && /^[.ab]{24}$/.test(g.e) && typeof g.o === 'string' && /^[.ab]{9}$/.test(g.o) && isNum(g.a) && isNum(g.b) && isNum(g.n) ? { g: g.g, k: 'dots', e: g.e, o: g.o, a: g.a, b: g.b, n: g.n } : null;
   if (g.k === 'four') return typeof g.b === 'string' && /^[.ry]{42}$/.test(g.b) && isNum(g.r) && isNum(g.y) && isNum(g.n) ? { g: g.g, k: 'four', b: g.b, r: g.r, y: g.y, n: g.n } : null;
   return null;
 }
@@ -3406,6 +3504,7 @@ function newGame(kind) {
   const num = threadNum; if (!num) return;
   const id = me.num + Date.now().toString(36);
   if (kind === 'ttt') sendGame(num, { g: id, k: 'ttt', b: '.........', x: me.num, o: num, n: me.num }, "🎮 Let's play tic-tac-toe!");
+  else if (kind === 'dots') sendGame(num, { g: id, k: 'dots', e: '.'.repeat(24), o: '.'.repeat(9), a: me.num, b: num, n: me.num }, "🎮 Let's play dots and boxes!");
   else if (kind === 'four') sendGame(num, { g: id, k: 'four', b: '.'.repeat(42), r: me.num, y: num, n: me.num }, "🎮 Let's play four in a row!");
   else if (kind === 'hang') {
     modal(`<h3>🎈 Hangman</h3><div class="note">Type a secret word for ${esc(chatName(num))} to guess: 3 to 12 letters, no spaces.</div>
@@ -3433,14 +3532,30 @@ function gamesIn(msgs) {
     if (g.k === 'ttt' && (g.b.match(/[xo]/g) || []).length > (cur.g.b.match(/[xo]/g) || []).length) cur.g = g;
     if (g.k === 'rps') cur.g = Object.assign({}, cur.g, { p: Object.assign({}, cur.g.p, g.p) });
     if (g.k === 'four' && (g.b.match(/[ry]/g) || []).length > (cur.g.b.match(/[ry]/g) || []).length) cur.g = g;
+    if (g.k === 'dots' && (g.e.match(/[ab]/g) || []).length > (cur.g.e.match(/[ab]/g) || []).length) cur.g = g;
     if (g.k === 'hang') cur.g = Object.assign({}, cur.g, { t: [...new Set([...cur.g.t, ...g.t])].sort().join('') });   // every guess counts, whatever order they arrive in
   });
   return out;
 }
 function gameHtml(g, mine, t) {
-  const other = g.k === 'ttt' ? (g.x === me.num ? g.o : g.x) : g.k === 'four' ? (g.r === me.num ? g.y : g.r) : g.k === 'hang' ? (g.s === me.num ? g.p : g.s) : (g.a === me.num ? g.b : g.a), them = esc(chatName(other));
+  const other = g.k === 'dots' ? (g.a === me.num ? g.b : g.a) : g.k === 'ttt' ? (g.x === me.num ? g.o : g.x) : g.k === 'four' ? (g.r === me.num ? g.y : g.r) : g.k === 'hang' ? (g.s === me.num ? g.p : g.s) : (g.a === me.num ? g.b : g.a), them = esc(chatName(other));
   let body = '', st = '', done = false;
-  if (g.k === 'hang') {
+  if (g.k === 'dots') {
+    const meL = g.a === me.num ? 'a' : 'b', full = !g.e.includes('.'), myTurn = !full && g.n === me.num;
+    const mine = [...g.o].filter(x => x === meL).length, theirs = [...g.o].filter(x => x !== '.' && x !== meL).length;
+    let cells = '';
+    for (let R = 0; R < 7; R++) for (let C = 0; C < 7; C++) {
+      if (R % 2 === 0 && C % 2 === 0) cells += '<i class="dot"></i>';
+      else if (R % 2 === 1 && C % 2 === 1) { const o = g.o[((R - 1) / 2) * 3 + (C - 1) / 2]; cells += `<i class="box ${o === '.' ? '' : o}">${o === '.' ? '' : o === meL ? '😊' : '🙂'}</i>`; }
+      else {
+        const i = R % 2 === 0 ? (R / 2) * 3 + (C - 1) / 2 : 12 + ((R - 1) / 2) * 4 + C / 2, d = g.e[i];
+        cells += `<button type="button" class="ln ${R % 2 === 0 ? 'h' : 'v'} ${d === '.' ? '' : d}" data-dots="${esc(g.g)}" data-edge="${i}" ${myTurn && d === '.' ? '' : 'disabled'}></button>`;
+      }
+    }
+    body = `<div class="dotsGrid">${cells}</div><div class="dotsScore">You ${mine} · ${them} ${theirs}</div>`;
+    done = full;
+    st = !full ? (myTurn ? `Your turn: tap a line (you are ${meL === 'a' ? '🔴' : '🔵'})` : `Waiting for ${them}…`) : mine === theirs ? "It's a draw! 🤝" : mine > theirs ? 'You won! 🏆' : `${them} won! 🎉`;
+  } else if (g.k === 'hang') {
     const h = hangState(g), guesser = g.p === me.num;
     done = h.won || h.lost;
     body = `<div class="hgWord">${[...h.w].map(c => `<span class="${g.t.includes(c) ? 'got' : ''}">${g.t.includes(c) || done || !guesser ? c : ''}</span>`).join('')}</div>`
@@ -3493,6 +3608,20 @@ function wireGames(box, games) {
     const ng = Object.assign({}, g, { t: [...g.t, c].sort().join('') }), after = hangState(ng);
     sendGame(threadNum, ng, after.won ? '🎮 Hangman: I guessed the word!' : after.lost ? '🎮 Hangman: out of balloons!' : `🎮 Hangman: I guessed ${c}`);
     if (after.won) { confetti(); store.set('hangWins', store.get('hangWins', 0) + 1); trophyCheck(); }
+  });
+  box.querySelectorAll('[data-dots]').forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const cur = games[b.dataset.dots]; if (!cur) return;
+    const g = cur.g, i = +b.dataset.edge, meL = g.a === me.num ? 'a' : 'b';
+    if (g.n !== me.num || g.e[i] !== '.') return;
+    const ne = g.e.slice(0, i) + meL + g.e.slice(i + 1);
+    let no = g.o, got = 0;
+    DOTS_BOX.forEach((edges, k) => { if (no[k] === '.' && edges.includes(i) && edges.every(x => ne[x] !== '.')) { no = no.slice(0, k) + meL + no.slice(k + 1); got++; } });
+    const other = g.a === me.num ? g.b : g.a, full = !ne.includes('.');
+    const mine = [...no].filter(x => x === meL).length, theirs = [...no].filter(x => x !== '.' && x !== meL).length;
+    sendGame(threadNum, Object.assign({}, g, { e: ne, o: no, n: got ? me.num : other }),   // finishing a box earns another go
+      full ? (mine > theirs ? '🎮 Dots and boxes: I won!' : mine === theirs ? '🎮 Dots and boxes: a draw!' : '🎮 Dots and boxes: you won!') : got ? `🎮 Dots and boxes: I got ${got > 1 ? got + ' boxes' : 'a box'}!` : '🎮 Dots and boxes: your turn!');
+    if (full && mine > theirs) { confetti(); store.set('dotsWins', store.get('dotsWins', 0) + 1); trophyCheck(); }
   });
   box.querySelectorAll('[data-four]').forEach(b => b.onclick = e => {
     e.stopPropagation();
