@@ -872,6 +872,11 @@ body.tv-matrix{--ink:#c8ffd4;--dim:#5fd47a;--faint:#3a8a4c;--edge:rgba(0,255,90,
 .dotsGrid .box{display:grid;place-items:center;font-style:normal;font-size:24px;border-radius:6px}
 .dotsGrid .box.a{background:rgba(229,57,53,.22)}.dotsGrid .box.b{background:rgba(30,136,229,.22)}
 .dotsScore{font-weight:800;font-size:14px}
+.trn{display:block;margin-top:5px;padding-top:5px;border-top:1px dashed rgba(127,127,127,.5);font-style:italic;opacity:.9}
+.langsel{flex:0 1 auto;max-width:56%;padding:8px 10px;border-radius:12px;font-size:14px}
+/* longer words in other languages: the top buttons drop their icons on narrow phones */
+.toptabs button{overflow:hidden;text-overflow:ellipsis}
+@media (max-width:440px){html:not([lang="en"]) .toptabs button{font-size:12px;padding:9px 2px;flex:1 1 auto}html:not([lang="en"]) .toptabs button span{display:none}}
 /* number grid */
 .ngrid{display:grid;grid-template-columns:repeat(4,1fr);width:min(80vw,300px);border:3px solid var(--ink);border-radius:12px;overflow:hidden}
 .ngrid button{aspect-ratio:1;font-size:clamp(22px,8vw,34px);font-weight:900;background:rgba(127,127,127,.08);border:1px solid rgba(127,127,127,.35);border-radius:0;color:var(--ink);padding:0}
@@ -3136,6 +3141,61 @@ function stickerImage(kind, word) {
   });
 }
 
+/* ---------- language: the app's own words, and translating messages ---------- */
+const APP_LANGS = { en: 'English', ml: 'മലയാളം', hi: 'हिन्दी', ta: 'தமிழ்', te: 'తెలుగు', kn: 'ಕನ್ನಡ', bn: 'বাংলা', mr: 'मराठी', gu: 'ગુજરાતી', pa: 'ਪੰਜਾਬੀ', ur: 'اردو', ar: 'العربية', es: 'Español', fr: 'Français', zh: '中文' };
+const I18N_KEYS = ["Chats", "Calls", "Keypad", "Contacts", "Account", "Settings", "Theme", "Games", "Who are you? Tap your picture.", "Add account", "Hold a picture to change its name or face.", "Type a message", "👨‍👩‍👧‍👦 Family call", "No chats yet.", "Online · ready for calls", "Today", "Close", "Cancel", "Message", "↩️ Reply to this", "📋 Copy the text", "🗑️ Delete for me", "🌐 Translate", "🕹️ Games", "🔁 Play again", "Send a picture", "📷 A photo from this phone", "✏️ Draw a picture", "😀 Send a friend sticker", "🔔 Test ringtone and notification", "🌐 Language", "Family call"];
+const I18N = {"ml": ["ചാറ്റുകൾ", "കോളുകൾ", "കീപാഡ്", "കോൺടാക്റ്റുകൾ", "അക്കൗണ്ട്", "ക്രമീകരണം", "തീം", "ഗെയിമുകൾ", "നിങ്ങൾ ആരാണ്? നിങ്ങളുടെ ചിത്രത്തിൽ തൊടൂ.", "അക്കൗണ്ട് ചേർക്കുക", "പേരോ മുഖമോ മാറ്റാൻ ചിത്രത്തിൽ അമർത്തിപ്പിടിക്കൂ.", "ഒരു സന്ദേശം ടൈപ്പ് ചെയ്യൂ", "👨‍👩‍👧‍👦 കുടുംബ കോൾ", "ഇതുവരെ ചാറ്റുകൾ ഇല്ല.", "ഓൺലൈൻ · കോളുകൾക്ക് തയ്യാർ", "ഇന്ന്", "അടയ്ക്കുക", "റദ്ദാക്കുക", "സന്ദേശം", "↩️ ഇതിന് മറുപടി", "📋 ടെക്സ്റ്റ് പകർത്തുക", "🗑️ എനിക്കായി ഇല്ലാതാക്കുക", "🌐 വിവർത്തനം ചെയ്യുക", "🕹️ ഗെയിമുകൾ", "🔁 വീണ്ടും കളിക്കുക", "ഒരു ചിത്രം അയയ്ക്കുക", "📷 ഈ ഫോണിലെ ഒരു ഫോട്ടോ", "✏️ ഒരു ചിത്രം വരയ്ക്കുക", "😀 ഒരു സുഹൃത്ത് സ്റ്റിക്കർ അയയ്ക്കുക", "🔔 റിംഗ്ടോണും അറിയിപ്പും പരീക്ഷിക്കുക", "🌐 ഭാഷ", "കുടുംബ കോൾ"], "hi": ["चैट", "कॉल", "कीपैड", "संपर्क", "खाता", "सेटिंग्स", "थीम", "गेम्स", "आप कौन हैं? अपनी तस्वीर पर टैप करें।", "खाता जोड़ें", "नाम या चेहरा बदलने के लिए तस्वीर को दबाकर रखें।", "संदेश लिखें", "👨‍👩‍👧‍👦 परिवार कॉल", "अभी तक कोई चैट नहीं।", "ऑनलाइन · कॉल के लिए तैयार", "आज", "बंद करें", "रद्द करें", "संदेश", "↩️ इसका जवाब दें", "📋 टेक्स्ट कॉपी करें", "🗑️ मेरे लिए हटाएँ", "🌐 अनुवाद करें", "🕹️ गेम्स", "🔁 फिर से खेलें", "तस्वीर भेजें", "📷 इस फ़ोन से फ़ोटो", "✏️ तस्वीर बनाएँ", "😀 दोस्त स्टिकर भेजें", "🔔 रिंगटोन और सूचना जाँचें", "🌐 भाषा", "परिवार कॉल"], "ta": ["அரட்டைகள்", "அழைப்புகள்", "கீபேட்", "தொடர்புகள்", "கணக்கு", "அமைப்புகள்", "தீம்", "விளையாட்டுகள்", "நீங்கள் யார்? உங்கள் படத்தைத் தொடுங்கள்.", "கணக்கைச் சேர்", "பெயர் அல்லது முகத்தை மாற்ற படத்தை அழுத்திப் பிடிக்கவும்.", "செய்தியை தட்டச்சு செய்யவும்", "👨‍👩‍👧‍👦 குடும்ப அழைப்பு", "இன்னும் அரட்டைகள் இல்லை.", "ஆன்லைன் · அழைப்புகளுக்குத் தயார்", "இன்று", "மூடு", "ரத்து செய்", "செய்தி", "↩️ இதற்கு பதில்", "📋 உரையை நகலெடு", "🗑️ எனக்கு மட்டும் நீக்கு", "🌐 மொழிபெயர்", "🕹️ விளையாட்டுகள்", "🔁 மீண்டும் விளையாடு", "படம் அனுப்பு", "📷 இந்த போனில் உள்ள புகைப்படம்", "✏️ படம் வரை", "😀 நண்பர் ஸ்டிக்கர் அனுப்பு", "🔔 ரிங்டோன் மற்றும் அறிவிப்பைச் சோதி", "🌐 மொழி", "குடும்ப அழைப்பு"], "te": ["చాట్‌లు", "కాల్స్", "కీప్యాడ్", "పరిచయాలు", "ఖాతా", "సెట్టింగ్‌లు", "థీమ్", "ఆటలు", "మీరు ఎవరు? మీ చిత్రాన్ని తాకండి.", "ఖాతాను జోడించు", "పేరు లేదా ముఖం మార్చడానికి చిత్రాన్ని నొక్కి పట్టుకోండి.", "సందేశం టైప్ చేయండి", "👨‍👩‍👧‍👦 కుటుంబ కాల్", "ఇంకా చాట్‌లు లేవు.", "ఆన్‌లైన్ · కాల్స్‌కు సిద్ధం", "ఈరోజు", "మూసివేయి", "రద్దు చేయి", "సందేశం", "↩️ దీనికి జవాబు ఇవ్వు", "📋 వచనాన్ని కాపీ చేయి", "🗑️ నాకు మాత్రమే తొలగించు", "🌐 అనువదించు", "🕹️ ఆటలు", "🔁 మళ్ళీ ఆడు", "చిత్రం పంపు", "📷 ఈ ఫోన్‌లోని ఫోటో", "✏️ చిత్రం గీయి", "😀 స్నేహితుడి స్టిక్కర్ పంపు", "🔔 రింగ్‌టోన్ మరియు నోటిఫికేషన్ పరీక్షించు", "🌐 భాష", "కుటుంబ కాల్"], "kn": ["ಚಾಟ್‌ಗಳು", "ಕರೆಗಳು", "ಕೀಪ್ಯಾಡ್", "ಸಂಪರ್ಕಗಳು", "ಖಾತೆ", "ಸೆಟ್ಟಿಂಗ್‌ಗಳು", "ಥೀಮ್", "ಆಟಗಳು", "ನೀವು ಯಾರು? ನಿಮ್ಮ ಚಿತ್ರವನ್ನು ಸ್ಪರ್ಶಿಸಿ.", "ಖಾತೆ ಸೇರಿಸಿ", "ಹೆಸರು ಅಥವಾ ಮುಖ ಬದಲಿಸಲು ಚಿತ್ರವನ್ನು ಒತ್ತಿ ಹಿಡಿಯಿರಿ.", "ಸಂದೇಶ ಟೈಪ್ ಮಾಡಿ", "👨‍👩‍👧‍👦 ಕುಟುಂಬ ಕರೆ", "ಇನ್ನೂ ಚಾಟ್‌ಗಳಿಲ್ಲ.", "ಆನ್‌ಲೈನ್ · ಕರೆಗಳಿಗೆ ಸಿದ್ಧ", "ಇಂದು", "ಮುಚ್ಚಿ", "ರದ್ದುಮಾಡಿ", "ಸಂದೇಶ", "↩️ ಇದಕ್ಕೆ ಉತ್ತರಿಸಿ", "📋 ಪಠ್ಯ ನಕಲಿಸಿ", "🗑️ ನನಗಾಗಿ ಅಳಿಸಿ", "🌐 ಅನುವಾದಿಸಿ", "🕹️ ಆಟಗಳು", "🔁 ಮತ್ತೆ ಆಡಿ", "ಚಿತ್ರ ಕಳುಹಿಸಿ", "📷 ಈ ಫೋನಿನ ಫೋಟೋ", "✏️ ಚಿತ್ರ ಬಿಡಿಸಿ", "😀 ಸ್ನೇಹಿತ ಸ್ಟಿಕ್ಕರ್ ಕಳುಹಿಸಿ", "🔔 ರಿಂಗ್‌ಟೋನ್ ಮತ್ತು ಅಧಿಸೂಚನೆ ಪರೀಕ್ಷಿಸಿ", "🌐 ಭಾಷೆ", "ಕುಟುಂಬ ಕರೆ"], "bn": ["চ্যাট", "কল", "কীপ্যাড", "পরিচিতি", "অ্যাকাউন্ট", "সেটিংস", "থিম", "গেম", "আপনি কে? আপনার ছবিতে ট্যাপ করুন।", "অ্যাকাউন্ট যোগ করুন", "নাম বা মুখ বদলাতে ছবিটি চেপে ধরুন।", "একটি বার্তা লিখুন", "👨‍👩‍👧‍👦 পরিবারের কল", "এখনও কোনো চ্যাট নেই।", "অনলাইন · কলের জন্য প্রস্তুত", "আজ", "বন্ধ করুন", "বাতিল", "বার্তা", "↩️ এর উত্তর দিন", "📋 লেখা কপি করুন", "🗑️ আমার জন্য মুছুন", "🌐 অনুবাদ করুন", "🕹️ গেম", "🔁 আবার খেলুন", "ছবি পাঠান", "📷 এই ফোনের একটি ছবি", "✏️ ছবি আঁকুন", "😀 বন্ধুর স্টিকার পাঠান", "🔔 রিংটোন ও বিজ্ঞপ্তি পরীক্ষা করুন", "🌐 ভাষা", "পরিবারের কল"], "mr": ["चॅट्स", "कॉल्स", "कीपॅड", "संपर्क", "खाते", "सेटिंग्ज", "थीम", "खेळ", "तुम्ही कोण आहात? तुमच्या चित्रावर टॅप करा.", "खाते जोडा", "नाव किंवा चेहरा बदलण्यासाठी चित्र दाबून ठेवा.", "संदेश लिहा", "👨‍👩‍👧‍👦 कुटुंब कॉल", "अजून चॅट्स नाहीत.", "ऑनलाइन · कॉलसाठी तयार", "आज", "बंद करा", "रद्द करा", "संदेश", "↩️ याला उत्तर द्या", "📋 मजकूर कॉपी करा", "🗑️ माझ्यासाठी हटवा", "🌐 भाषांतर करा", "🕹️ खेळ", "🔁 पुन्हा खेळा", "चित्र पाठवा", "📷 या फोनमधील फोटो", "✏️ चित्र काढा", "😀 मित्र स्टिकर पाठवा", "🔔 रिंगटोन आणि सूचना तपासा", "🌐 भाषा", "कुटुंब कॉल"], "gu": ["ચેટ્સ", "કૉલ્સ", "કીપેડ", "સંપર્કો", "એકાઉન્ટ", "સેટિંગ્સ", "થીમ", "રમતો", "તમે કોણ છો? તમારા ચિત્ર પર ટૅપ કરો.", "એકાઉન્ટ ઉમેરો", "નામ અથવા ચહેરો બદલવા માટે ચિત્રને દબાવી રાખો.", "સંદેશ લખો", "👨‍👩‍👧‍👦 કુટુંબ કૉલ", "હજી કોઈ ચેટ નથી.", "ઑનલાઇન · કૉલ માટે તૈયાર", "આજે", "બંધ કરો", "રદ કરો", "સંદેશ", "↩️ આનો જવાબ આપો", "📋 લખાણ કૉપિ કરો", "🗑️ મારા માટે કાઢી નાખો", "🌐 અનુવાદ કરો", "🕹️ રમતો", "🔁 ફરી રમો", "ચિત્ર મોકલો", "📷 આ ફોનનો ફોટો", "✏️ ચિત્ર દોરો", "😀 મિત્ર સ્ટિકર મોકલો", "🔔 રિંગટોન અને સૂચના તપાસો", "🌐 ભાષા", "કુટુંબ કૉલ"], "pa": ["ਚੈਟਾਂ", "ਕਾਲਾਂ", "ਕੀਪੈਡ", "ਸੰਪਰਕ", "ਖਾਤਾ", "ਸੈਟਿੰਗਾਂ", "ਥੀਮ", "ਖੇਡਾਂ", "ਤੁਸੀਂ ਕੌਣ ਹੋ? ਆਪਣੀ ਤਸਵੀਰ 'ਤੇ ਟੈਪ ਕਰੋ।", "ਖਾਤਾ ਜੋੜੋ", "ਨਾਂ ਜਾਂ ਚਿਹਰਾ ਬਦਲਣ ਲਈ ਤਸਵੀਰ ਨੂੰ ਦਬਾ ਕੇ ਰੱਖੋ।", "ਸੁਨੇਹਾ ਲਿਖੋ", "👨‍👩‍👧‍👦 ਪਰਿਵਾਰਕ ਕਾਲ", "ਹਾਲੇ ਕੋਈ ਚੈਟ ਨਹੀਂ।", "ਆਨਲਾਈਨ · ਕਾਲਾਂ ਲਈ ਤਿਆਰ", "ਅੱਜ", "ਬੰਦ ਕਰੋ", "ਰੱਦ ਕਰੋ", "ਸੁਨੇਹਾ", "↩️ ਇਸ ਦਾ ਜਵਾਬ ਦਿਓ", "📋 ਲਿਖਤ ਕਾਪੀ ਕਰੋ", "🗑️ ਮੇਰੇ ਲਈ ਮਿਟਾਓ", "🌐 ਅਨੁਵਾਦ ਕਰੋ", "🕹️ ਖੇਡਾਂ", "🔁 ਫਿਰ ਖੇਡੋ", "ਤਸਵੀਰ ਭੇਜੋ", "📷 ਇਸ ਫ਼ੋਨ ਦੀ ਫ਼ੋਟੋ", "✏️ ਤਸਵੀਰ ਬਣਾਓ", "😀 ਦੋਸਤ ਸਟਿੱਕਰ ਭੇਜੋ", "🔔 ਰਿੰਗਟੋਨ ਅਤੇ ਸੂਚਨਾ ਜਾਂਚੋ", "🌐 ਭਾਸ਼ਾ", "ਪਰਿਵਾਰਕ ਕਾਲ"], "ur": ["چیٹس", "کالز", "کی پیڈ", "رابطے", "اکاؤنٹ", "ترتیبات", "تھیم", "گیمز", "آپ کون ہیں؟ اپنی تصویر پر ٹیپ کریں۔", "اکاؤنٹ شامل کریں", "نام یا چہرہ بدلنے کے لیے تصویر کو دبائے رکھیں۔", "پیغام لکھیں", "👨‍👩‍👧‍👦 فیملی کال", "ابھی کوئی چیٹ نہیں۔", "آن لائن · کالز کے لیے تیار", "آج", "بند کریں", "منسوخ کریں", "پیغام", "↩️ اس کا جواب دیں", "📋 متن کاپی کریں", "🗑️ میرے لیے حذف کریں", "🌐 ترجمہ کریں", "🕹️ گیمز", "🔁 دوبارہ کھیلیں", "تصویر بھیجیں", "📷 اس فون سے تصویر", "✏️ تصویر بنائیں", "😀 دوست اسٹیکر بھیجیں", "🔔 رنگ ٹون اور اطلاع آزمائیں", "🌐 زبان", "فیملی کال"], "ar": ["الدردشات", "المكالمات", "لوحة الأرقام", "جهات الاتصال", "الحساب", "الإعدادات", "السمة", "الألعاب", "من أنت؟ اضغط على صورتك.", "إضافة حساب", "اضغط مطولاً على الصورة لتغيير الاسم أو الوجه.", "اكتب رسالة", "👨‍👩‍👧‍👦 مكالمة عائلية", "لا توجد دردشات بعد.", "متصل · جاهز للمكالمات", "اليوم", "إغلاق", "إلغاء", "رسالة", "↩️ الرد على هذه", "📋 نسخ النص", "🗑️ حذف لدي", "🌐 ترجمة", "🕹️ الألعاب", "🔁 العب مرة أخرى", "إرسال صورة", "📷 صورة من هذا الهاتف", "✏️ ارسم صورة", "😀 إرسال ملصق صديق", "🔔 تجربة النغمة والإشعار", "🌐 اللغة", "مكالمة عائلية"], "es": ["Chats", "Llamadas", "Teclado", "Contactos", "Cuenta", "Ajustes", "Tema", "Juegos", "¿Quién eres? Toca tu foto.", "Añadir cuenta", "Mantén pulsada una foto para cambiar su nombre o cara.", "Escribe un mensaje", "👨‍👩‍👧‍👦 Llamada familiar", "Aún no hay chats.", "En línea · listo para llamadas", "Hoy", "Cerrar", "Cancelar", "Mensaje", "↩️ Responder", "📋 Copiar el texto", "🗑️ Borrar para mí", "🌐 Traducir", "🕹️ Juegos", "🔁 Jugar otra vez", "Enviar una foto", "📷 Una foto de este teléfono", "✏️ Hacer un dibujo", "😀 Enviar una pegatina", "🔔 Probar tono y notificación", "🌐 Idioma", "Llamada familiar"], "fr": ["Discussions", "Appels", "Clavier", "Contacts", "Compte", "Réglages", "Thème", "Jeux", "Qui es-tu ? Touche ta photo.", "Ajouter un compte", "Appuie longuement sur une photo pour changer son nom ou son visage.", "Écris un message", "👨‍👩‍👧‍👦 Appel en famille", "Pas encore de discussions.", "En ligne · prêt pour les appels", "Aujourd'hui", "Fermer", "Annuler", "Message", "↩️ Répondre", "📋 Copier le texte", "🗑️ Supprimer pour moi", "🌐 Traduire", "🕹️ Jeux", "🔁 Rejouer", "Envoyer une image", "📷 Une photo de ce téléphone", "✏️ Faire un dessin", "😀 Envoyer un autocollant", "🔔 Tester la sonnerie et la notification", "🌐 Langue", "Appel en famille"], "zh": ["聊天", "通话", "拨号盘", "联系人", "账户", "设置", "主题", "游戏", "你是谁？点一下你的头像。", "添加账户", "长按头像可以更改名字或头像。", "输入消息", "👨‍👩‍👧‍👦 家庭通话", "还没有聊天。", "在线 · 可以通话", "今天", "关闭", "取消", "消息", "↩️ 回复", "📋 复制文字", "🗑️ 为我删除", "🌐 翻译", "🕹️ 游戏", "🔁 再玩一次", "发送图片", "📷 这部手机里的照片", "✏️ 画一幅画", "😀 发送好友贴纸", "🔔 测试铃声和通知", "🌐 语言", "家庭通话"]};
+const MSG_LANGS = ["af", "sq", "am", "ar", "hy", "az", "eu", "be", "bn", "bs", "bg", "ca", "ceb", "zh", "co", "hr", "cs", "da", "nl", "en", "eo", "et", "fi", "fr", "fy", "gl", "ka", "de", "el", "gu", "ht", "ha", "haw", "he", "hi", "hmn", "hu", "is", "ig", "id", "ga", "it", "ja", "jv", "kn", "kk", "km", "rw", "ko", "ku", "ky", "lo", "la", "lv", "lt", "lb", "mk", "mg", "ms", "ml", "mt", "mi", "mr", "mn", "my", "ne", "no", "ny", "or", "ps", "fa", "pl", "pt", "pa", "ro", "ru", "sm", "gd", "sr", "st", "sn", "sd", "si", "sk", "sl", "so", "es", "su", "sw", "sv", "tl", "tg", "ta", "tt", "te", "th", "tr", "tk", "uk", "ur", "ug", "uz", "vi", "cy", "xh", "yi", "yo", "zu"];
+const appLang = () => { const l = gstore.get('lang', 'en'); return APP_LANGS[l] ? l : 'en'; };
+const msgLang = () => { const l = gstore.get('msgLang', ''); return MSG_LANGS.includes(l) ? l : appLang(); };
+const langName = code => { try { return new Intl.DisplayNames([code], { type: 'language' }).of(code) || code; } catch (e) { return code; } };
+let i18nMap = null;
+const I18N_SKIP = '.bub, .chatrow .meta, #thName, .who b, .pickme b';   // places that show what people wrote or their names
+function i18nApply(root) {   // swaps any whole piece of English text the app shows for the chosen language
+  if (!i18nMap) return;
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let n = w.nextNode(); n; n = w.nextNode()) {
+    if (n.parentElement && n.parentElement.closest(I18N_SKIP)) continue;   // never change what people wrote
+    const v = n.nodeValue, t = v.trim(), tr = t && i18nMap.get(t);
+    if (tr && tr !== t) n.nodeValue = v.replace(t, tr);
+  }
+  (root.querySelectorAll ? root.querySelectorAll('[placeholder]') : []).forEach(el => { const tr = i18nMap.get(el.placeholder); if (tr && tr !== el.placeholder) el.placeholder = tr; });
+}
+function i18nStart() {
+  const l = appLang(); document.documentElement.lang = l;
+  if (l === 'en') return;
+  i18nMap = new Map(I18N_KEYS.map((k, i) => [k, I18N[l][i]]));
+  i18nApply(document.body);
+  new MutationObserver(ms => ms.forEach(m => {
+    if (m.target.parentElement && m.target.parentElement.closest(I18N_SKIP)) return;
+    if (m.type === 'characterData') { const t = m.target.nodeValue.trim(), tr = t && i18nMap.get(t); if (tr && tr !== t) m.target.nodeValue = m.target.nodeValue.replace(t, tr); }
+    m.addedNodes.forEach(n => { if (n.nodeType === 3 && !(n.parentElement && n.parentElement.closest(I18N_SKIP))) { const t = n.nodeValue.trim(), tr = t && i18nMap.get(t); if (tr && tr !== t) n.nodeValue = n.nodeValue.replace(t, tr); } else if (n.nodeType === 1) i18nApply(n); });
+  })).observe(document.body, { childList: true, subtree: true, characterData: true });
+}
+// a message in another language: the phone's own translator where Chrome has one, otherwise a free online service
+async function translateText(text, to) {
+  try {
+    if ('Translator' in self && 'LanguageDetector' in self) {
+      const det = await LanguageDetector.create(), top = (await det.detect(text))[0];
+      const from = top && top.detectedLanguage;
+      if (from && from !== 'und') {
+        if (from === to) return text;
+        if ((await Translator.availability({ sourceLanguage: from, targetLanguage: to })) !== 'unavailable') return await (await Translator.create({ sourceLanguage: from, targetLanguage: to })).translate(text);
+      }
+    }
+  } catch (e) {}
+  const r = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text.slice(0, 480)) + '&langpair=Autodetect%7C' + encodeURIComponent(to)).then(x => x.json());
+  const out = r && r.responseData && r.responseData.translatedText;
+  if (!out || r.responseStatus !== 200) throw new Error('no translation');
+  const box = document.createElement('textarea'); box.innerHTML = out; return box.value;   // the service sends &amp; style text
+}
+async function translateMsg(m) {
+  const to = msgLang();
+  toast('🌐 Translating…', 6000);
+  try { m.tr = { l: to, t: (await translateText(m.text, to)).slice(0, 2000) }; saveChats(); renderThread(); toast('🌐 ' + langName(to), 1500); }
+  catch (e) { toast('Could not translate right now. Check the internet.', 3000); }
+}
+
 /* ---------- settings ---------- */
 $('myNumBtn').onclick = () => {
   const txt = me.name + "'s JK Video Call number: " + me.num;
@@ -3149,6 +3209,8 @@ $('settingsBtn').onclick = () => {
     <div class="note" style="margin-top:4px">Video quality (highest your camera and internet allow)</div>
     <div class="seg" id="stQual">${Object.keys(QUALITY).map(k => `<button data-q="${k}" class="${k === quality ? 'on' : ''}">${QUALITY[k].label}</button>`).join('')}</div>
     <div class="fxrow"><div class="note">✨ Animations (taps, confetti)</div><div class="seg thscheme" id="stFx"><button type="button" data-fx="1" class="${fxOn() ? 'on' : ''}">On</button><button type="button" data-fx="0" class="${fxOn() ? '' : 'on'}">Off</button></div></div>
+    <div class="fxrow"><div class="note">🌐 Language</div><select class="field langsel" id="stLang">${Object.keys(APP_LANGS).map(k => `<option value="${k}" ${k === appLang() ? 'selected' : ''}>${APP_LANGS[k]}</option>`).join('')}</select></div>
+    <div class="fxrow"><div class="note">💬 Translate messages into</div><select class="field langsel" id="stMsgLang">${MSG_LANGS.map(k => [k, langName(k)]).sort((a, b) => a[1].localeCompare(b[1])).map(([k, n]) => `<option value="${k}" ${k === msgLang() ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></div>
     <div class="note" style="margin-top:4px">🎵 Ringtone (tap one to hear it)</div>
     <div class="seg tonepick" id="stTone">${Object.keys(TUNES).map(k => `<button type="button" data-tone="${k}" class="${k === toneChoice() ? 'on' : ''}">${TUNES[k].name}</button>`).join('')}</div>
     <button class="plain" id="stTest">🔔 Test ringtone and notification</button>
@@ -3156,6 +3218,8 @@ $('settingsBtn').onclick = () => {
     <button class="plain" id="stSync">☁️ Save and check for messages now</button>
     <button class="gloss g-glass" style="padding:12px" id="stClose">Close</button>`);
   $('stClose').onclick = closeModal;
+  $('stLang').onchange = () => { gstore.set('lang', $('stLang').value); if (!gstore.get('msgLang', '')) gstore.set('msgLang', $('stLang').value); location.reload(); };
+  $('stMsgLang').onchange = () => { gstore.set('msgLang', $('stMsgLang').value); toast('💬 Messages will be translated into ' + langName($('stMsgLang').value), 2500); };
   $('stTone').onclick = e => {
     const b = e.target.closest('[data-tone]'); if (!b) return;
     gstore.set('tone', b.dataset.tone);
@@ -3804,7 +3868,8 @@ function bubbleHtml(m, t, tick) {
     return `<div class="${cls} media" data-mid="${m.id}">${quoteHtml(m)}${body}${m.text ? '<span class="cap">' + esc(m.text) + '</span>' : ''}${foot}${rxHtml(m)}</div>`;
   }
   const big = onlyEmoji(m.text) && !m.re, fresh = big && Date.now() - (m.ts || 0) < 6000;   // a new emoji-only message dances once
-  return `<div class="${cls} ${big ? 'big' : ''}${fresh ? ' fresh' : ''}" data-mid="${m.id}">${quoteHtml(m)}${esc(m.text)}${foot}${rxHtml(m)}</div>`;
+  const trn = m.tr && m.tr.t ? `<span class="trn" dir="auto">🌐 ${esc(m.tr.t)}</span>` : '';
+  return `<div class="${cls} ${big ? 'big' : ''}${fresh ? ' fresh' : ''}" data-mid="${m.id}">${quoteHtml(m)}${esc(m.text)}${trn}${foot}${rxHtml(m)}</div>`;
 }
 /* hold a message (or right-click it) for reactions, reply and delete */
 function wireBubbles(box) {
@@ -3827,11 +3892,13 @@ function msgMenu(id) {
     <div class="rxpick" id="rxPick">${RX.map(e => `<button type="button" data-rx="${e}" class="${mine === e ? 'on' : ''}">${e}</button>`).join('')}</div>
     <button class="plain" id="mmReply">↩️ Reply to this</button>
     ${m.kind ? '' : '<button class="plain" id="mmCopy">📋 Copy the text</button>'}
+    ${m.kind || !m.text || gameOf(m.text) ? '' : '<button class="plain" id="mmTr">🌐 Translate</button>'}
     <button class="plain danger" id="mmDel">🗑️ Delete for me</button>
     <button class="gloss g-glass" style="padding:12px" id="mmClose">Close</button>`);
   $('mmClose').onclick = closeModal;
   $('rxPick').onclick = e => { const b = e.target.closest('[data-rx]'); if (!b) return; react(m, b.dataset.rx); closeModal(); };
   $('mmReply').onclick = () => { setReply(m); closeModal(); };
+  if ($('mmTr')) $('mmTr').onclick = () => { closeModal(); translateMsg(m); };
   if ($('mmCopy')) $('mmCopy').onclick = () => { try { if (navigator.clipboard) navigator.clipboard.writeText(m.text); toast('Copied'); } catch (e) {} closeModal(); };
   $('mmDel').onclick = () => {
     const ch = chats[threadNum]; if (ch) ch.msgs = ch.msgs.filter(x => x !== m);
@@ -4299,6 +4366,7 @@ window.addEventListener('beforeunload', () => { if (gcall) gbroadcastRaw(gcall, 
 if ($('familyBtn')) $('familyBtn').onclick = openGroupPicker;
 
 /* ---------- boot ---------- */
+i18nStart();
 renderPeople();
 loadPeople();
 const sess = gstore.get('session', null), sessP = sess && gstore.get('profiles', []).find(p => p.num === sess);
