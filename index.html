@@ -842,6 +842,20 @@ body.tv-matrix{--ink:#c8ffd4;--dim:#5fd47a;--faint:#3a8a4c;--edge:rgba(0,255,90,
 @media (prefers-reduced-motion:reduce){.tapring,.tapdot{display:none}}
 .fxrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .tonepick{grid-template-columns:repeat(3,1fr)}
+/* games in chat */
+.bub.game{padding:10px 12px;max-width:min(300px,82%)}
+.game h4{margin:0 0 6px;font-size:15px}
+.game .st{display:block;margin-top:7px;font-size:13.5px;opacity:.9}
+.ttt{display:grid;grid-template-columns:repeat(3,54px);gap:5px;margin:4px 0}
+.ttt button{width:54px;height:54px;border-radius:12px;background:rgba(127,127,127,.2);font-size:30px;font-weight:800;line-height:1;color:inherit}
+.ttt button.win{background:rgba(255,214,0,.55)}
+.ttt button:not(:disabled):active{transform:scale(.92)}
+.rps{display:flex;gap:6px;margin:4px 0}
+.rps button{flex:1;height:52px;border-radius:12px;background:rgba(127,127,127,.2);font-size:28px}
+.game .big{display:flex;align-items:center;gap:12px;font-size:40px;line-height:1.1;white-space:nowrap}
+.game .big small{font-size:14px;font-weight:700;opacity:.75}
+.game .again{margin-top:8px;padding:8px 14px;border-radius:999px;background:rgba(127,127,127,.25);font-weight:700;font-size:13.5px;color:inherit}
+.gamepick{display:flex;flex-direction:column;gap:10px}
 .tonepick button{font-size:12.5px;padding:9px 2px}
 /* confetti when a call connects */
 .confetti{position:fixed;top:-16px;width:9px;height:14px;pointer-events:none;z-index:10000;border-radius:2px;animation:confall var(--t) cubic-bezier(.25,.6,.4,1) var(--d) forwards}
@@ -962,6 +976,7 @@ body.tv-matrix{--ink:#c8ffd4;--dim:#5fd47a;--faint:#3a8a4c;--edge:rgba(0,255,90,
     <form class="composer glass" id="composer" autocomplete="off">
       <button type="button" class="send sm gloss g-glass" id="photoBtn" title="Send a picture">🖼️</button>
       <button type="button" class="send sm gloss g-glass" id="micBtn" title="Record a voice message">🎤</button>
+      <button type="button" class="send sm gloss g-glass" id="gameBtn" title="Play a game">🎮</button>
       <input class="field" id="msgIn" placeholder="Type a message" maxlength="2000" enterkeyhint="send">
       <button class="send gloss g-blue" id="sendBtn" type="submit" title="Send"></button>
     </form>
@@ -1896,7 +1911,7 @@ function renderChats() {
   if (!rows.length) { el.innerHTML = '<div class="empty">No chats yet.<br>Add a contact with their number to start chatting.</div>'; return; }
   el.innerHTML = rows.map(r => {
     const name = chatName(r.n);
-    const prev = !r.last ? 'Say hi 👋' : r.last.call ? (r.last.call.video ? '📹 ' : '📞 ') + (r.last.call.result === 'ok' ? '' : r.last.me ? 'No answer · ' : 'Missed ') + (r.last.call.video ? 'Video call' : 'Voice call') : (r.last.me ? 'You: ' : '') + (r.last.kind ? mediaLabel(r.last) : r.last.text);
+    const prev = !r.last ? 'Say hi 👋' : r.last.call ? (r.last.call.video ? '📹 ' : '📞 ') + (r.last.call.result === 'ok' ? '' : r.last.me ? 'No answer · ' : 'Missed ') + (r.last.call.video ? 'Video call' : 'Voice call') : (r.last.me ? 'You: ' : '') + mediaLabel(r.last);
     return `<button class="chatrow glass ${r.unread ? 'unread' : ''}" data-open="${r.n}">
       <div class="orb ${orbCls(name)}">${esc(initial(name))}</div>
       <div class="meta"><b>${esc(name)}</b><span>${esc(prev)}</span></div>
@@ -1927,7 +1942,8 @@ function renderThread(jump) {
   const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
   let lastDay = '', h = '';
   if (!ch.msgs.length) h = `<div class="daysep">Say hi to ${esc(chatName(threadNum))} 👋</div>`;
-  ch.msgs.forEach(m => {
+  const games = gamesIn(ch.msgs);
+  ch.msgs.forEach((m, mi) => {
     const day = new Date(m.ts).toDateString();
     if (day !== lastDay) { lastDay = day; h += `<div class="daysep">${day === new Date().toDateString() ? 'Today' : new Date(m.ts).toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' })}</div>`; }
     const t = new Date(m.ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
@@ -1939,13 +1955,15 @@ function renderThread(jump) {
         <div class="ct"><b>${esc(title.charAt(0).toUpperCase() + title.slice(1))}</b><span>${missed ? 'Tap to call back' : fmtDur(k.dur)}</span></div><small>${t}</small></div>`;
       return;
     }
+    const gm = !m.call && !m.kind && gameOf(m.text);
+    if (gm) { const cur = games[gm.g]; if (cur && cur.at === mi) h += gameHtml(cur.g, m.me, t); return; }   // one board per game, at its newest move
     const tick = m.me ? (m.st === 'pending' ? '<b title="Waiting to send">🕓</b>' : m.st === 'cloud' ? '<b title="Sent. It arrives when they open the app" style="letter-spacing:0">✓</b>' : `<b class="${m.st === 'read' ? 'read' : ''}" title="${m.st === 'read' ? 'Seen' : 'Delivered'}">✓✓</b>`) : '';
     h += bubbleHtml(m, t, tick);
   });
   if (ch.msgs.some(m => m.me && m.st === 'pending')) h += `<div class="pendnote">Will send when ${esc(chatName(threadNum))} opens the app</div>`;
   box.innerHTML = h;
   box.querySelectorAll('[data-cb]').forEach(b => b.onclick = () => dialFromThread(b.dataset.cb === '1'));
-  wireBubbles(box);
+  wireBubbles(box); wireGames(box, games);
   if (jump || nearBottom) box.scrollTop = box.scrollHeight;
 }
 let returnThread = null;   // chat to reopen when the call started from it ends
@@ -2017,7 +2035,7 @@ function receiveMsg(num, sentName, id0, text, c, opts) {
     if (ex.re) nm.re = ex.re;
     if (ex.kind) { nm.kind = ex.kind; nm.data = ex.data; if (ex.dur) nm.dur = ex.dur; }
     ch.msgs.push(nm);
-    const prev = ex.kind === 'voice' ? '🎤 Voice message' : ex.kind === 'photo' ? '🖼️ Photo' : String(text || '');
+    const prev = ex.kind === 'voice' ? '🎤 Voice message' : ex.kind === 'photo' ? '🖼️ Photo' : String(text || '').split(GMARK)[0];
     const seeing = threadNum === num && !document.hidden;
     if (!seeing) {
       ch.unread = (ch.unread || 0) + 1;
@@ -2656,9 +2674,93 @@ window.addEventListener('beforeunload', () => { if (call) send({ t: 'end' }); })
 
 /* ================= voice notes, pictures, reactions and replies, family call ================= */
 
+/* ---------- games in chat ---------- */
+// A game move is sent as an ordinary chat message: a readable line, then §GAME§ and the game's state.
+// So moves travel every way messages do (straight to the other phone, or through the online inbox),
+// and a chat shows each game once, as a board, at the place of its newest move.
+const GMARK = '\n§GAME§';
+const GAMES = { ttt: '❌⭕ Tic-tac-toe', rps: '✊✋✌️ Rock paper scissors' };
+const RPS = { r: '✊', p: '✋', s: '✌️' }, BEATS = { r: 's', p: 'r', s: 'p' };
+function gameOf(text) {
+  const t = String(text || ''), i = t.indexOf(GMARK); if (i < 0) return null;
+  try { const g = JSON.parse(t.slice(i + GMARK.length)); return g && g.g && GAMES[g.k] ? g : null; } catch (e) { return null; }
+}
+const gameLabel = g => '🎮 ' + GAMES[g.k].replace(/^\S+ /, '');
+const TTT_LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+function tttWinner(b) {
+  for (const l of TTT_LINES) if (b[l[0]] !== '.' && b[l[0]] === b[l[1]] && b[l[1]] === b[l[2]]) return { who: b[l[0]], line: l };
+  return b.includes('.') ? null : { who: 'd', line: [] };
+}
+function sendGame(num, g, line) { sendMsg(num, line + GMARK + JSON.stringify(g)); }
+function newGame(kind) {
+  const num = threadNum; if (!num) return;
+  const id = me.num + Date.now().toString(36);
+  if (kind === 'ttt') sendGame(num, { g: id, k: 'ttt', b: '.........', x: me.num, o: num, n: me.num }, "🎮 Let's play tic-tac-toe!");
+  else sendGame(num, { g: id, k: 'rps', a: me.num, b: num, p: {} }, "🎮 Let's play rock paper scissors!");
+}
+// all the moves of each game in a chat, merged: the board with the most moves, or everyone's picks
+function gamesIn(msgs) {
+  const out = {};
+  msgs.forEach((m, i) => {
+    const g = !m.call && !m.kind && gameOf(m.text); if (!g) return;
+    const cur = out[g.g];
+    if (!cur) { out[g.g] = { g, at: i }; return; }
+    cur.at = i;
+    if (g.k === 'ttt' && (g.b.match(/[xo]/g) || []).length > (cur.g.b.match(/[xo]/g) || []).length) cur.g = g;
+    if (g.k === 'rps') cur.g = Object.assign({}, cur.g, { p: Object.assign({}, cur.g.p, g.p) });
+  });
+  return out;
+}
+function gameHtml(g, mine, t) {
+  const other = g.k === 'ttt' ? (g.x === me.num ? g.o : g.x) : (g.a === me.num ? g.b : g.a), them = esc(chatName(other));
+  let body = '', st = '', done = false;
+  if (g.k === 'ttt') {
+    const meMark = g.x === me.num ? 'x' : 'o', w = tttWinner(g.b), myTurn = !w && g.n === me.num;
+    body = '<div class="ttt">' + [...g.b].map((c, i) => `<button type="button" data-ttt="${esc(g.g)}" data-cell="${i}" class="${w && w.line.includes(i) ? 'win' : ''}" ${myTurn && c === '.' ? '' : 'disabled'}>${c === 'x' ? '❌' : c === 'o' ? '⭕' : ''}</button>`).join('') + '</div>';
+    done = !!w;
+    st = !w ? (myTurn ? `Your turn (you are ${meMark === 'x' ? '❌' : '⭕'})` : `Waiting for ${them}…`) : w.who === 'd' ? "It's a draw! 🤝" : w.who === meMark ? 'You won! 🏆' : `${them} won! 🎉`;
+  } else {
+    const mineP = g.p[me.num], theirs = g.p[other];
+    if (RPS[mineP] && RPS[theirs]) {
+      done = true;
+      body = `<div class="big"><span>${RPS[mineP]}</span><small>vs</small><span>${RPS[theirs]}</span></div>`;
+      st = mineP === theirs ? "Same! It's a draw 🤝" : BEATS[mineP] === theirs ? 'You won! 🏆' : `${them} won! 🎉`;
+    } else if (RPS[mineP]) { body = `<div class="big">${RPS[mineP]}</div>`; st = `You picked. Waiting for ${them}…`; }
+    else { body = '<div class="rps">' + Object.keys(RPS).map(k => `<button type="button" data-rps="${esc(g.g)}" data-pick="${k}">${RPS[k]}</button>`).join('') + '</div>'; st = theirs ? `${them} has picked. Your turn!` : 'Pick one!'; }
+  }
+  return `<div class="bub game ${mine ? 'mine' : 'them'}"><h4>${GAMES[g.k]}</h4>${body}<span class="st">${st}</span>`
+    + (done ? `<button type="button" class="again" data-again="${g.k}">🔁 Play again</button>` : '') + `<small>${t}</small></div>`;
+}
+function wireGames(box, games) {
+  box.querySelectorAll('[data-ttt]').forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const cur = games[b.dataset.ttt]; if (!cur) return;
+    const g = cur.g, i = +b.dataset.cell, meMark = g.x === me.num ? 'x' : 'o';
+    if (g.n !== me.num || g.b[i] !== '.' || tttWinner(g.b)) return;
+    const nb = g.b.slice(0, i) + meMark + g.b.slice(i + 1), other = g.x === me.num ? g.o : g.x, w = tttWinner(nb);
+    sendGame(threadNum, Object.assign({}, g, { b: nb, n: other }), w ? (w.who === 'd' ? '🎮 Tic-tac-toe: a draw!' : '🎮 Tic-tac-toe: I won!') : '🎮 Tic-tac-toe: your turn!');
+    if (w && w.who === meMark) confetti();
+  });
+  box.querySelectorAll('[data-rps]').forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const cur = games[b.dataset.rps]; if (!cur || cur.g.p[me.num]) return;
+    const g = Object.assign({}, cur.g, { p: Object.assign({}, cur.g.p, { [me.num]: b.dataset.pick }) });
+    sendGame(threadNum, g, '🎮 Rock paper scissors: I picked!');
+  });
+  box.querySelectorAll('[data-again]').forEach(b => b.onclick = e => { e.stopPropagation(); newGame(b.dataset.again); });
+}
+$('gameBtn').onclick = () => {
+  if (!threadNum) return;
+  modal(`<h3>🎮 Play a game with ${esc(chatName(threadNum))}</h3><div class="note">Moves are sent as messages, so you can play even when they open the app later.</div>
+    <div class="gamepick">${Object.keys(GAMES).map(k => `<button type="button" class="gloss g-glass" style="padding:14px" data-newgame="${k}">${GAMES[k]}</button>`).join('')}
+    <button type="button" class="plain" id="gpClose">Cancel</button></div>`);
+  $('gpClose').onclick = closeModal;
+  document.querySelectorAll('[data-newgame]').forEach(b => b.onclick = () => { closeModal(); newGame(b.dataset.newgame); });
+};
+
 /* ---------- how a message looks ---------- */
 const RX = ['👍', '❤️', '😂', '😮', '🙏', '🎉'];
-const mediaLabel = m => m.kind === 'voice' ? '🎤 Voice message' : m.kind === 'photo' ? '🖼️ Photo' : String(m.text || '');
+const mediaLabel = m => m.kind === 'voice' ? '🎤 Voice message' : m.kind === 'photo' ? '🖼️ Photo' : gameOf(m.text) ? gameLabel(gameOf(m.text)) : String(m.text || '');
 function findMsg(id) { const ch = chats[threadNum]; return ch && ch.msgs.find(m => m.id === id); }
 function rxHtml(m) {
   const rx = m.rx || {}, keys = Object.keys(rx).filter(k => rx[k]);
