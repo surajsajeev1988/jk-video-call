@@ -865,7 +865,7 @@ body:not(.tv) .arcade{background:#0b141a}
 .arcHead b{flex:1}
 .arcHead span{font-weight:700;font-variant-numeric:tabular-nums}
 .arcBack{width:40px;height:40px;border-radius:50%;background:rgba(127,127,127,.2);font-size:18px}
-.arcBody{flex:1;display:flex;flex-direction:column;align-items:center;gap:14px;padding:6px 16px 16px;overflow-y:auto}
+.arcBody{flex:1;display:flex;flex-direction:column;align-items:center;gap:14px;padding:6px 16px 16px;overflow-y:auto;overflow-x:hidden}
 .arcMenu{display:flex;flex-direction:column;gap:12px;width:100%;max-width:360px;margin-top:10px}
 .arcMenu button{display:flex;align-items:center;gap:14px;padding:16px;border-radius:18px;background:rgba(127,127,127,.16);text-align:left;font-size:17px;font-weight:700}
 .arcMenu button i{font-style:normal;font-size:34px}
@@ -908,7 +908,7 @@ body:not(.tv) .arcade{background:#0b141a}
 .brickSide canvas{display:block;border-radius:10px;background:rgba(127,127,127,.14)}
 .brickSide b{display:block;font-size:20px}
 /* merge up */
-.mergeBox{position:relative;touch-action:none;width:min(92vw,360px)}
+.mergeBox{position:relative;touch-action:none;width:min(calc(100vw - 32px),360px)}
 .mergeGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px;border-radius:16px;background:rgba(127,127,127,.18);touch-action:none}
 .mtile{aspect-ratio:1;border-radius:10px;display:grid;place-items:center;font-weight:900;font-size:clamp(16px,7vw,30px);background:rgba(127,127,127,.15);color:#1d1d1d}
 .mtile.n{animation:tilepop .18s ease-out}.mtile.m{animation:tilemerge .22s ease-out}
@@ -2515,7 +2515,7 @@ function bestCheck(key, score, higherIsBetter = true) {
 
 /* Brick Fall: falling bricks; full rows disappear */
 function brickGame() {
-  const C = 10, R = 18, cell = Math.max(14, Math.floor(Math.min((window.innerWidth - 120) / C, (window.innerHeight - 330) / R, 26)));
+  const C = 10, R = 18, cell = Math.max(14, Math.floor(Math.min((window.innerWidth - 136) / C, (window.innerHeight - 330) / R, 26)));
   const W = cell * C, H = cell * R;
   arcOpen('🧱 Brick Fall', '0');
   $('arcBody').innerHTML = `<div class="brickWrap"><div class="brickBox"><canvas id="bkc" width="${W * 2}" height="${H * 2}" style="width:${W}px;height:${H}px"></canvas><div class="overlay hidden" id="bkOver"></div></div>
