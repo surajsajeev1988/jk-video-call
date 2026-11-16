@@ -2732,7 +2732,8 @@ function doodle(num) {
   $('ddSend').onclick = () => {
     if (!strokes.length) return toast('Draw something first ✏️');
     sendMedia(num, 'photo', cv.toDataURL('image/jpeg', 0.82), { text: '✏️' });
-    arcClose(); toast('Doodle sent!');
+    arcClose();
+    if (links[num] && links[num].open) toast('Doodle sent!');   // otherwise the "Will send when…" note stays
   };
   paint();
   arcStop = () => { strokes = []; };
