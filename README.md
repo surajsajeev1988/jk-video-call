@@ -54,3 +54,19 @@ npm run desktop:start    # try the desktop app
 ```
 
 `npm run www` copies `index.html`, the icons and PeerJS into `apps/www`, which every app is built from.
+
+## Server
+
+The app talks to a Google Apps Script web app (the "JK caller" project in Google Drive). Its code
+is in `server/`:
+
+- `Code.gs`: the server. It keeps accounts, contacts, chats and call history in Script Properties,
+  and wakes phones with push notifications. The push key is blanked out here because this
+  repository is public; the real one is in the Apps Script project.
+- `appsscript.json`: the project settings (runs as the owner, open to anyone).
+- `test.js`: checks sign-in, adding, editing and removing accounts against a stand-in for Script
+  Properties. Run `node server/test.js`.
+
+To change the server: edit `Code.gs` in the Apps Script editor (keep the real key), click **Save**,
+then **Deploy → Manage deployments → Edit (pencil) → Version: New version → Deploy**. Don't make a
+new deployment, or the web address changes and the app stops reaching it.
