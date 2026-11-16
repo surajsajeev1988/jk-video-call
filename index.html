@@ -1118,7 +1118,7 @@ const BASE_PEOPLE = [
   { num: '1988', name: 'Suraj', av: 'man' },
   { num: '1989', name: 'Tulasi', av: 'woman' }
 ];
-const AV_KINDS = ['boy', 'girl', 'man', 'woman', 'grandpa', 'grandma'];
+const AV_KINDS = ['boy', 'girl', 'man', 'woman', 'grandpa', 'grandma', 'cat', 'dog', 'robot', 'hero', 'princess', 'astronaut'];
 // everyone who can sign in: the four built-in accounts plus any added later (kept on the server)
 let PEOPLE = BASE_PEOPLE.concat((gstore.get('extra', []) || []).filter(p => p && /^\d{4}$/.test(p.num) && !BASE_PEOPLE.some(b => b.num === p.num)));
 /* simple drawn faces: boy, girl, man, woman */
@@ -1143,6 +1143,28 @@ function avatar(kind) {
     + `<path d="M16 100 Q20 82 50 86 Q80 82 84 100Z" fill="#ba68c8"/>` + face(25)
     + `<path d="M25 53 Q22 27 50 27 Q78 27 75 53 Q69 36 50 37 Q31 36 25 53Z" fill="${grey}"/>`
     + glasses(53) + eyes(53, 2.6) + `<circle cx="36" cy="62" r="4" fill="#f48fb1" opacity=".5"/><circle cx="64" cy="62" r="4" fill="#f48fb1" opacity=".5"/>` + smile(63);
+  else if (kind === 'cat') s = bg('#ffe0b2') + `<path d="M22 46 L26 14 L44 32Z M78 46 L74 14 L56 32Z" fill="#fb8c00"/><path d="M27 40 L29 22 L39 33Z M73 40 L71 22 L61 33Z" fill="#ffab91"/>`
+    + `<ellipse cx="50" cy="56" rx="31" ry="27" fill="#fb8c00"/><ellipse cx="50" cy="66" rx="14" ry="10" fill="#fff3e0"/>`
+    + `<ellipse cx="38" cy="51" rx="4.5" ry="6" fill="#2e7d32"/><ellipse cx="62" cy="51" rx="4.5" ry="6" fill="#2e7d32"/><ellipse cx="38" cy="51" rx="1.6" ry="4.5" fill="#111"/><ellipse cx="62" cy="51" rx="1.6" ry="4.5" fill="#111"/>`
+    + `<path d="M46 61 h8 l-4 4z" fill="#e91e63"/><path d="M50 65 q-4 5 -8 2 M50 65 q4 5 8 2" fill="none" stroke="#5d4037" stroke-width="1.8" stroke-linecap="round"/>`
+    + `<path d="M30 63 h-16 M30 67 l-15 4 M70 63 h16 M70 67 l15 4" stroke="#5d4037" stroke-width="1.4" stroke-linecap="round"/>`;
+  else if (kind === 'dog') s = bg('#bbdefb') + `<ellipse cx="50" cy="55" rx="27" ry="29" fill="#a1887f"/><ellipse cx="22" cy="50" rx="10" ry="20" fill="#5d4037" transform="rotate(18 22 50)"/><ellipse cx="78" cy="50" rx="10" ry="20" fill="#5d4037" transform="rotate(-18 78 50)"/>`
+    + `<ellipse cx="50" cy="68" rx="15" ry="12" fill="#efebe9"/><circle cx="40" cy="50" r="3.6" fill="#1b1b1b"/><circle cx="60" cy="50" r="3.6" fill="#1b1b1b"/><circle cx="41" cy="49" r="1.1" fill="#fff"/><circle cx="61" cy="49" r="1.1" fill="#fff"/>`
+    + `<ellipse cx="50" cy="61" rx="6" ry="4.5" fill="#212121"/><path d="M50 65 v4 M44 70 q6 4 12 0" fill="none" stroke="#3e2723" stroke-width="1.8" stroke-linecap="round"/><path d="M47 72 q3 9 6 0z" fill="#ef5350"/>`;
+  else if (kind === 'robot') s = bg('#cfd8dc') + `<path d="M50 12 v10" stroke="#607d8b" stroke-width="3"/><circle cx="50" cy="11" r="4.5" fill="#ff5252"/>`
+    + `<rect x="22" y="22" width="56" height="48" rx="10" fill="#90a4ae"/><rect x="16" y="38" width="7" height="16" rx="3" fill="#78909c"/><rect x="77" y="38" width="7" height="16" rx="3" fill="#78909c"/>`
+    + `<rect x="30" y="34" width="16" height="12" rx="3" fill="#263238"/><rect x="54" y="34" width="16" height="12" rx="3" fill="#263238"/><circle cx="38" cy="40" r="3.6" fill="#18ffff"/><circle cx="62" cy="40" r="3.6" fill="#18ffff"/>`
+    + `<rect x="35" y="54" width="30" height="8" rx="2" fill="#263238"/><path d="M41 54 v8 M47 54 v8 M53 54 v8 M59 54 v8" stroke="#18ffff" stroke-width="1.5"/>` + `<path d="M24 100 Q24 76 50 76 Q76 76 76 100Z" fill="#607d8b"/><circle cx="50" cy="88" r="5" fill="#ffd740"/>`;
+  else if (kind === 'hero') s = bg('#ef9a9a') + `<path d="M10 100 Q14 74 50 72 Q86 74 90 100Z" fill="#d32f2f"/>` + body('#1565c0') + `<path d="M50 84 l3.5 7 7.5 .6 -5.8 4.8 1.9 7.3 -7.1 -4 -7.1 4 1.9 -7.3 -5.8 -4.8 7.5 -.6z" fill="#ffd600"/>` + face(25)
+    + `<path d="M25 50 Q22 25 50 25 Q78 25 75 50 Q68 34 50 36 Q32 34 25 50Z" fill="${hair}"/><path d="M26 48 Q50 40 74 48 L72 58 Q60 54 50 58 Q40 54 28 58Z" fill="#1565c0"/>`
+    + `<ellipse cx="40" cy="51" rx="4.5" ry="3" fill="#fff"/><ellipse cx="60" cy="51" rx="4.5" ry="3" fill="#fff"/><circle cx="40" cy="51" r="1.8" fill="#111"/><circle cx="60" cy="51" r="1.8" fill="#111"/>` + smile(64);
+  else if (kind === 'princess') s = bg('#f8bbd0') + `<path d="M20 96 Q12 30 50 26 Q88 30 80 96Z" fill="#fbc02d"/>` + body('#ab47bc') + face(24)
+    + `<path d="M27 52 Q25 30 50 30 Q75 30 73 52 Q66 38 50 39 Q34 38 27 52Z" fill="#fbc02d"/><path d="M32 30 L35 14 L43 24 L50 10 L57 24 L65 14 L68 30Z" fill="#ffd54f" stroke="#f9a825" stroke-width="1.5"/>`
+    + `<circle cx="50" cy="20" r="2.6" fill="#e91e63"/><circle cx="36" cy="22" r="2" fill="#29b6f6"/><circle cx="64" cy="22" r="2" fill="#29b6f6"/>` + eyes(54, 3) + `<circle cx="37" cy="61" r="3.5" fill="#f48fb1" opacity=".6"/><circle cx="63" cy="61" r="3.5" fill="#f48fb1" opacity=".6"/>` + smile(62);
+  else if (kind === 'astronaut') s = bg('#1a237e') + `<circle cx="16" cy="18" r="1.4" fill="#fff"/><circle cx="84" cy="24" r="1.8" fill="#fff"/><circle cx="12" cy="70" r="1.2" fill="#fff"/><circle cx="88" cy="66" r="1.4" fill="#fff"/><circle cx="74" cy="10" r="1" fill="#fff"/>`
+    + `<path d="M18 100 Q18 76 50 76 Q82 76 82 100Z" fill="#eceff1"/><rect x="40" y="84" width="20" height="10" rx="2" fill="#90a4ae"/><circle cx="45" cy="89" r="2" fill="#ff5252"/><circle cx="55" cy="89" r="2" fill="#69f0ae"/>`
+    + `<circle cx="50" cy="48" r="31" fill="#eceff1"/><circle cx="50" cy="50" r="23" fill="#37474f"/>` + `<circle cx="50" cy="52" r="17" fill="${skin}"/>` + eyes(51, 2.6) + smile(57)
+    + `<path d="M34 38 Q40 32 48 32" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/>`;
   else s = bg('#ce93d8') + `<path d="M19 94 Q12 24 50 21 Q88 24 81 94Z" fill="${hair}"/>` + body('#ec407a') + face(25) + `<path d="M25 51 Q23 28 50 28 Q77 28 75 51 Q67 35 47 37 Q34 39 25 51Z" fill="${hair}"/><circle cx="50" cy="41" r="1.9" fill="#d32f2f"/>` + eyes(53, 3) + smile(63);
   return `<svg viewBox="0 0 100 100" aria-hidden="true">${s}</svg>`;
 }

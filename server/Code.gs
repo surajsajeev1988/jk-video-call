@@ -12,7 +12,7 @@
 // A new name or picture for a built-in account is kept in 'u_base' the same way.
 var USERS = { '2019': 'Krishna', '2017': 'Jagannath', '1988': 'Suraj', '1989': 'Tulasi' };
 var BASE_AV = { '2017': 'boy', '2019': 'girl', '1988': 'man', '1989': 'woman' };
-var AV_KINDS = ['boy', 'girl', 'man', 'woman', 'grandpa', 'grandma'];
+var AV_KINDS = ['boy', 'girl', 'man', 'woman', 'grandpa', 'grandma', 'cat', 'dog', 'robot', 'hero', 'princess', 'astronaut'];
 var MAX_EXTRA = 1000;      // added accounts: no real limit, only a guard against runaway sign-ups
 
 // a built-in account's name and face, with any change made in the app
