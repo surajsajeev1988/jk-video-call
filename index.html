@@ -833,6 +833,14 @@ body.tv-matrix{--ink:#c8ffd4;--dim:#5fd47a;--faint:#3a8a4c;--edge:rgba(0,255,90,
   --t-glow:0 0 10px rgba(0,255,90,.35);--t-r:4px;--t-gloss:0;--t-read:#3dff7f;
   --t-font:"Courier New",ui-monospace,monospace}
 .thsurprise{display:flex;gap:8px}
+/* tap animations: a ring and a burst of sparkles where a button is tapped */
+.tapring,.tapdot{position:fixed;pointer-events:none;z-index:9999;border-radius:50%}
+.tapring{width:20px;height:20px;margin:-10px 0 0 -10px;border:3px solid var(--fx1);animation:tapring .6s ease-out forwards}
+.tapdot{width:11px;height:11px;margin:-5.5px 0 0 -5.5px;background:var(--fx1);box-shadow:0 0 8px var(--fx1);animation:tapdot .8s cubic-bezier(.15,.7,.3,1) forwards}
+@keyframes tapring{from{transform:scale(.3);opacity:.95}to{transform:scale(4.2);opacity:0}}
+@keyframes tapdot{from{transform:translate(0,0) scale(1);opacity:1}60%{opacity:1}to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+@media (prefers-reduced-motion:reduce){.tapring,.tapdot{display:none}}
+.fxrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .thscheme{display:flex;gap:4px;padding:4px;border-radius:999px}
 .thscheme button{flex:1;padding:9px 4px;border-radius:999px;font-weight:600;font-size:14px}
 .thsurprise button{flex:1;padding:11px}
@@ -2123,6 +2131,28 @@ function wakeCall() {
   }, 3000);
 }
 
+/* ---------- tap animations ---------- */
+// A ring ripples out from the finger and sparkles burst around it, in the theme's colours.
+const fxOn = () => gstore.get('tapfx', true) !== false;
+function tapBurst(x, y) {
+  const cs = getComputedStyle(document.body);
+  const acc = (cs.getPropertyValue('--t-acc-text') || '').trim() || '#25d366';
+  const colours = [acc, '#ffd166', '#ff6b9d', '#4fc3f7', '#b388ff', acc];
+  const add = (cls, css) => { const el = document.createElement('i'); el.className = cls; el.style.cssText = css; document.body.appendChild(el); setTimeout(() => el.remove(), 900); };
+  add('tapring', `left:${x}px;top:${y}px;--fx1:${acc}`);
+  const n = 8, turn = Math.random() * Math.PI;
+  for (let i = 0; i < n; i++) {
+    const a = turn + i * 2 * Math.PI / n, d = 38 + Math.random() * 26;
+    add('tapdot', `left:${x}px;top:${y}px;--fx1:${colours[i % colours.length]};--dx:${(Math.cos(a) * d).toFixed(1)}px;--dy:${(Math.sin(a) * d).toFixed(1)}px`);
+  }
+}
+document.addEventListener('pointerdown', e => {
+  if (!fxOn() || (e.pointerType === 'mouse' && e.button !== 0)) return;
+  if (!e.target.closest('button, .chatrow, .rec, .pickme, .thsw, [data-k]')) return;
+  if (call || gcall) return;   // keep the call screen calm
+  tapBurst(e.clientX, e.clientY);
+}, { passive: true });
+
 /* ---------- settings ---------- */
 $('myNumBtn').onclick = () => {
   const txt = me.name + "'s JK Video Call number: " + me.num;
@@ -2135,11 +2165,17 @@ $('settingsBtn').onclick = () => {
     <div class="note" id="stCloud">${esc(cloudNote())}</div>
     <div class="note" style="margin-top:4px">Video quality (highest your camera and internet allow)</div>
     <div class="seg" id="stQual">${Object.keys(QUALITY).map(k => `<button data-q="${k}" class="${k === quality ? 'on' : ''}">${QUALITY[k].label}</button>`).join('')}</div>
+    <div class="fxrow"><div class="note">✨ Tap animations</div><div class="seg thscheme" id="stFx"><button type="button" data-fx="1" class="${fxOn() ? 'on' : ''}">On</button><button type="button" data-fx="0" class="${fxOn() ? '' : 'on'}">Off</button></div></div>
     <button class="plain" id="stTest">🔔 Test ringtone and notification</button>
     <button class="plain" id="stMic">🎤 Check the microphone</button>
     <button class="plain" id="stSync">☁️ Save and check for messages now</button>
     <button class="gloss g-glass" style="padding:12px" id="stClose">Close</button>`);
   $('stClose').onclick = closeModal;
+  $('stFx').onclick = e => {
+    const b = e.target.closest('[data-fx]'); if (!b) return;
+    gstore.set('tapfx', b.dataset.fx === '1');
+    $('stFx').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  };
   $('stQual').onclick = e => {
     const b = e.target.closest('[data-q]'); if (!b) return;
     quality = b.dataset.q; store.set('quality', quality);
