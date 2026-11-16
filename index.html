@@ -2680,10 +2680,21 @@ window.addEventListener('beforeunload', () => { if (call) send({ t: 'end' }); })
 // and a chat shows each game once, as a board, at the place of its newest move.
 const GMARK = '\n§GAME§';
 const GAMES = { ttt: '❌⭕ Tic-tac-toe', rps: '✊✋✌️ Rock paper scissors' };
-const RPS = { r: '✊', p: '✋', s: '✌️' }, BEATS = { r: 's', p: 'r', s: 'p' };
+const RPS = Object.assign(Object.create(null), { r: '✊', p: '✋', s: '✌️' }), BEATS = { r: 's', p: 'r', s: 'p' };
+// only well-formed games are used; anything else stays an ordinary message
+const isNum = v => typeof v === 'string' && /^\d{4}$/.test(v);
 function gameOf(text) {
   const t = String(text || ''), i = t.indexOf(GMARK); if (i < 0) return null;
-  try { const g = JSON.parse(t.slice(i + GMARK.length)); return g && g.g && GAMES[g.k] ? g : null; } catch (e) { return null; }
+  let g; try { g = JSON.parse(t.slice(i + GMARK.length)); } catch (e) { return null; }
+  if (!g || typeof g !== 'object' || typeof g.g !== 'string' || !/^[0-9a-z]{4,40}$/.test(g.g)) return null;
+  if (g.k === 'ttt') return typeof g.b === 'string' && /^[.xo]{9}$/.test(g.b) && isNum(g.x) && isNum(g.o) && isNum(g.n) ? { g: g.g, k: 'ttt', b: g.b, x: g.x, o: g.o, n: g.n } : null;
+  if (g.k === 'rps') {
+    if (!isNum(g.a) || !isNum(g.b) || !g.p || typeof g.p !== 'object') return null;
+    const p = {};
+    [g.a, g.b].forEach(n => { if (Object.prototype.hasOwnProperty.call(g.p, n) && RPS[g.p[n]]) p[n] = g.p[n]; });
+    return { g: g.g, k: 'rps', a: g.a, b: g.b, p };
+  }
+  return null;
 }
 const gameLabel = g => '🎮 ' + GAMES[g.k].replace(/^\S+ /, '');
 const TTT_LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
@@ -2700,7 +2711,7 @@ function newGame(kind) {
 }
 // all the moves of each game in a chat, merged: the board with the most moves, or everyone's picks
 function gamesIn(msgs) {
-  const out = {};
+  const out = Object.create(null);
   msgs.forEach((m, i) => {
     const g = !m.call && !m.kind && gameOf(m.text); if (!g) return;
     const cur = out[g.g];
