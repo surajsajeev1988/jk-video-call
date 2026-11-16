@@ -841,6 +841,8 @@ body.tv-matrix{--ink:#c8ffd4;--dim:#5fd47a;--faint:#3a8a4c;--edge:rgba(0,255,90,
 @keyframes tapdot{from{transform:translate(0,0) scale(1);opacity:1}60%{opacity:1}to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
 @media (prefers-reduced-motion:reduce){.tapring,.tapdot{display:none}}
 .fxrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.tonepick{grid-template-columns:repeat(3,1fr)}
+.tonepick button{font-size:12.5px;padding:9px 2px}
 /* confetti when a call connects */
 .confetti{position:fixed;top:-16px;width:9px;height:14px;pointer-events:none;z-index:10000;border-radius:2px;animation:confall var(--t) cubic-bezier(.25,.6,.4,1) var(--d) forwards}
 @keyframes confall{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(var(--x),110vh) rotate(var(--r));opacity:.9}}
@@ -1087,18 +1089,41 @@ function piano(freq, when, dur = 1.2, vol = 0.22, out = null) {
   });
 }
 const canBuzz = () => navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive);
-function ringtone() {
+/* other instruments for the ringtones: a bell, a marimba and a digital beep */
+function voice(kind, freq, when, dur, vol, out) {
+  if (kind === 'piano') return piano(freq, when, dur, vol, out);
+  const a = audio(); if (!a) return;
+  const t0 = a.currentTime + when;
+  const parts = kind === 'bell' ? [[1, 1], [2.76, 0.45], [5.4, 0.22], [8.93, 0.08]] : kind === 'marimba' ? [[1, 1], [4, 0.3], [9.8, 0.05]] : [[1, 1]];
+  parts.forEach(([h, g], i) => {
+    const o = a.createOscillator(), gn = a.createGain();
+    o.type = kind === 'beep' ? 'square' : 'sine'; o.frequency.value = freq * h;
+    gn.gain.setValueAtTime(0, t0);
+    if (kind === 'beep') { gn.gain.linearRampToValueAtTime(vol * 0.5, t0 + 0.005); gn.gain.setValueAtTime(vol * 0.5, t0 + dur - 0.02); gn.gain.linearRampToValueAtTime(0, t0 + dur); }
+    else { gn.gain.linearRampToValueAtTime(vol * g, t0 + 0.004); gn.gain.exponentialRampToValueAtTime(0.0001, t0 + (kind === 'marimba' ? dur * 0.5 : dur) / (1 + i * 0.8)); }
+    o.connect(gn); gn.connect(out || a.destination); o.start(t0); o.stop(t0 + dur + 0.05);
+  });
+}
+const NOTE = { C4: 261.63, E4: 329.63, G4: 392, A4: 440, C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, A5: 880, B5: 987.77, C6: 1046.5, D6: 1174.66, E6: 1318.51, G6: 1567.98 };
+/* the ringtones to choose from: [instrument, note, start (s), length (s), volume]; each repeats every `every` seconds */
+const TUNES = {
+  piano: { name: '🎹 Piano', every: 3.2, notes: [['piano', 'E5', 0, 1.2, 0.22], ['piano', 'G5', 0.2, 1.2, 0.22], ['piano', 'C6', 0.4, 1.2, 0.22], ['piano', 'E6', 0.6, 1.2, 0.22], ['piano', 'D6', 0.95, 1.2, 0.22], ['piano', 'C6', 1.15, 1.2, 0.22], ['piano', 'A5', 1.4, 1.2, 0.22], ['piano', 'C6', 1.6, 1.2, 0.22], ['piano', 'E6', 1.8, 1.2, 0.22], ['piano', 'G5', 2.2, 1.2, 0.22], ['piano', 'C4', 0, 1.9, 0.16], ['piano', 'G4', 0.6, 1.5, 0.1], ['piano', 'E4', 1.4, 1.8, 0.14]] },
+  bell: { name: '🔔 Bell', every: 2.6, notes: [0, 0.12, 0.24, 0.36, 0.48, 0.6, 0.9, 1.02, 1.14, 1.26, 1.38, 1.5].map((t, i) => ['bell', i % 2 ? 'E6' : 'C6', t, 0.5, 0.2]) },
+  marimba: { name: '🪘 Marimba', every: 2.4, notes: [['C6', 0], ['E6', 0.15], ['G6', 0.3], ['E6', 0.45], ['C6', 0.6], ['G5', 0.75], ['A5', 0.9], ['C6', 1.05], ['G5', 1.35], ['E5', 1.5]].map(([n, t]) => ['marimba', n, t, 0.6, 0.32]) },
+  twinkle: { name: '⭐ Twinkle', every: 3.6, notes: [['C5', 0], ['C5', 0.3], ['G5', 0.6], ['G5', 0.9], ['A5', 1.2], ['A5', 1.5], ['G5', 1.8], ['F5', 2.4], ['F5', 2.7], ['E5', 3.0]].map(([n, t]) => ['piano', n, t, 0.9, 0.25]).concat([['piano', 'C4', 0, 1.8, 0.14], ['piano', 'C4', 1.2, 1.8, 0.12]]) },
+  beeps: { name: '📟 Beeps', every: 2, notes: [0, 0.18, 0.36, 0.54, 0.95, 1.13, 1.31, 1.49].map(t => ['beep', 'B5', t, 0.11, 0.2]) }
+};
+const toneChoice = () => { const t = gstore.get('tone', 'piano'); return TUNES[t] ? t : 'piano'; };
+function ringtone(which) {
   stopTone();
-  try { if (window.jkDesktop) window.jkDesktop.ring(); } catch (e) {}   // desktop app: bring the window up from the tray
-  const N = { C4: 261.63, E4: 329.63, G4: 392, E5: 659.25, G5: 783.99, A5: 880, C6: 1046.5, D6: 1174.66, E6: 1318.51 };
-  const tune = [['E5', 0], ['G5', 0.2], ['C6', 0.4], ['E6', 0.6], ['D6', 0.95], ['C6', 1.15], ['A5', 1.4], ['C6', 1.6], ['E6', 1.8], ['G5', 2.2]];
+  if (!which) try { if (window.jkDesktop) window.jkDesktop.ring(); } catch (e) {}   // desktop app: bring the window up from the tray
+  const tune = TUNES[which || toneChoice()];
   const r = () => {
     const bus = loudBus();
-    tune.forEach(([n, at]) => piano(N[n], at, 1.2, 0.22, bus));
-    piano(N.C4, 0, 1.9, 0.16, bus); piano(N.G4, 0.6, 1.5, 0.1, bus); piano(N.E4, 1.4, 1.8, 0.14, bus);
-    if (canBuzz()) navigator.vibrate([500, 250, 500, 250, 500]);
+    tune.notes.forEach(([v, n, at, dur, vol]) => voice(v, NOTE[n], at, dur, vol, bus));
+    if (!which && canBuzz()) navigator.vibrate([500, 250, 500, 250, 500]);
   };
-  r(); toneT = setInterval(r, 3200);
+  r(); toneT = setInterval(r, tune.every * 1000);
 }
 const blip = () => beep([880], 0.06, 0.05);
 const endTone = () => { beep([480, 620], 0.25, 0.08); beep([480, 620], 0.25, 0.08, 'sine', 0.35); };
@@ -2207,11 +2232,20 @@ $('settingsBtn').onclick = () => {
     <div class="note" style="margin-top:4px">Video quality (highest your camera and internet allow)</div>
     <div class="seg" id="stQual">${Object.keys(QUALITY).map(k => `<button data-q="${k}" class="${k === quality ? 'on' : ''}">${QUALITY[k].label}</button>`).join('')}</div>
     <div class="fxrow"><div class="note">✨ Animations (taps, confetti)</div><div class="seg thscheme" id="stFx"><button type="button" data-fx="1" class="${fxOn() ? 'on' : ''}">On</button><button type="button" data-fx="0" class="${fxOn() ? '' : 'on'}">Off</button></div></div>
+    <div class="note" style="margin-top:4px">🎵 Ringtone (tap one to hear it)</div>
+    <div class="seg tonepick" id="stTone">${Object.keys(TUNES).map(k => `<button type="button" data-tone="${k}" class="${k === toneChoice() ? 'on' : ''}">${TUNES[k].name}</button>`).join('')}</div>
     <button class="plain" id="stTest">🔔 Test ringtone and notification</button>
     <button class="plain" id="stMic">🎤 Check the microphone</button>
     <button class="plain" id="stSync">☁️ Save and check for messages now</button>
     <button class="gloss g-glass" style="padding:12px" id="stClose">Close</button>`);
   $('stClose').onclick = closeModal;
+  $('stTone').onclick = e => {
+    const b = e.target.closest('[data-tone]'); if (!b) return;
+    gstore.set('tone', b.dataset.tone);
+    $('stTone').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+    ringtone(b.dataset.tone); clearTimeout(ringtone.prev); ringtone.prev = setTimeout(stopTone, 3500);   // a short preview
+  };
+  $('stClose').addEventListener('click', () => { clearTimeout(ringtone.prev); if (!call && !gcall) stopTone(); });
   $('stFx').onclick = e => {
     const b = e.target.closest('[data-fx]'); if (!b) return;
     gstore.set('tapfx', b.dataset.fx === '1');
