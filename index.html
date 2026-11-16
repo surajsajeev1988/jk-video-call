@@ -856,6 +856,45 @@ body.tv-matrix{--ink:#c8ffd4;--dim:#5fd47a;--faint:#3a8a4c;--edge:rgba(0,255,90,
 .game .big small{font-size:14px;font-weight:700;opacity:.75}
 .game .again{margin-top:8px;padding:8px 14px;border-radius:999px;background:rgba(127,127,127,.25);font-weight:700;font-size:13.5px;color:inherit}
 .gamepick{display:flex;flex-direction:column;gap:10px}
+.toptabs button{min-width:0;white-space:nowrap}
+@media (max-width:380px){.toptabs button{font-size:12.5px;gap:4px}.toptabs button span{font-size:14px}}
+/* the games corner: a full screen of its own */
+.arcade{position:fixed;inset:0;z-index:35;display:flex;flex-direction:column;background:var(--t-bg,#0b141a);color:var(--ink);padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+body:not(.tv) .arcade{background:#0b141a}
+.arcHead{display:flex;align-items:center;gap:12px;padding:12px 14px;font-size:18px}
+.arcHead b{flex:1}
+.arcHead span{font-weight:700;font-variant-numeric:tabular-nums}
+.arcBack{width:40px;height:40px;border-radius:50%;background:rgba(127,127,127,.2);font-size:18px}
+.arcBody{flex:1;display:flex;flex-direction:column;align-items:center;gap:14px;padding:6px 16px 16px;overflow-y:auto}
+.arcMenu{display:flex;flex-direction:column;gap:12px;width:100%;max-width:360px;margin-top:10px}
+.arcMenu button{display:flex;align-items:center;gap:14px;padding:16px;border-radius:18px;background:rgba(127,127,127,.16);text-align:left;font-size:17px;font-weight:700}
+.arcMenu button i{font-style:normal;font-size:34px}
+.arcMenu small{display:block;font-weight:500;font-size:13px;opacity:.75;margin-top:2px}
+.arcNote{font-size:14px;opacity:.85;text-align:center;min-height:20px}
+.arcBtn{padding:11px 22px;border-radius:999px;background:var(--t-acc,#00a884);color:var(--t-on-acc,#fff);font-weight:800;font-size:15px}
+/* snake */
+.snakeBox{position:relative;touch-action:none}
+.snakeBox canvas{display:block;border-radius:16px;background:rgba(127,127,127,.14);touch-action:none}
+.snakeOver{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;border-radius:16px;background:rgba(0,0,0,.55);color:#fff;text-align:center;font-weight:700;font-size:18px}
+.dpad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,56px);gap:8px}
+.dpad button{border-radius:16px;background:rgba(127,127,127,.22);font-size:26px}
+.dpad button:active{transform:scale(.92)}
+.dpad .u{grid-column:2}.dpad .l{grid-column:1;grid-row:2}.dpad .d{grid-column:2;grid-row:2}.dpad .r{grid-column:3;grid-row:2}
+/* memory match */
+.memSize{display:flex;gap:8px}
+.memSize button{padding:8px 14px;border-radius:999px;background:rgba(127,127,127,.2);font-weight:700;font-size:14px}
+.memSize button.on{background:var(--t-acc,#00a884);color:var(--t-on-acc,#fff)}
+.memGrid{display:grid;gap:8px;width:100%;max-width:360px}
+.mcard{aspect-ratio:3/4;perspective:600px;background:none;padding:0}
+.mcard .in{position:relative;display:block;width:100%;height:100%;transition:transform .35s;transform-style:preserve-3d}
+.mcard.up .in,.mcard.done .in{transform:rotateY(180deg)}
+.mcard .f,.mcard .b{position:absolute;inset:0;display:grid;place-items:center;border-radius:12px;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.mcard .b{background:var(--t-acc,#00a884);font-size:22px;color:var(--t-on-acc,#fff);box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.mcard .f{background:#fff;transform:rotateY(180deg);font-size:min(9vw,38px);box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.mcard.done .f{background:#e8ffe8;box-shadow:0 0 0 3px #4caf50}
+.mcard.shake .in{animation:cardshake .35s}
+@keyframes cardshake{25%{transform:rotateY(180deg) translateX(-5px)}75%{transform:rotateY(180deg) translateX(5px)}}
+@media (prefers-reduced-motion:reduce){.mcard .in{transition:none}}
 .tonepick button{font-size:12.5px;padding:9px 2px}
 /* confetti when a call connects */
 .confetti{position:fixed;top:-16px;width:9px;height:14px;pointer-events:none;z-index:10000;border-radius:2px;animation:confall var(--t) cubic-bezier(.25,.6,.4,1) var(--d) forwards}
@@ -874,6 +913,10 @@ body.tv-matrix{--ink:#c8ffd4;--dim:#5fd47a;--faint:#3a8a4c;--edge:rgba(0,255,90,
 <body>
 <div class="sky"><div class="stars"></div><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
 
+<div class="arcade hidden" id="arcade">
+  <div class="arcHead"><button type="button" class="arcBack" id="arcBack" aria-label="Back">✕</button><b id="arcTitle">🕹️ Games</b><span id="arcScore"></span></div>
+  <div class="arcBody" id="arcBody"></div>
+</div>
 <div class="app" id="app">
   <!-- setup -->
   <section class="setup" id="setup">
@@ -901,6 +944,7 @@ body.tv-matrix{--ink:#c8ffd4;--dim:#5fd47a;--faint:#3a8a4c;--edge:rgba(0,255,90,
     <button type="button" id="accountBtn"><span>👤</span>Account</button>
     <button type="button" id="settingsBtn"><span>⚙️</span>Settings</button>
     <button type="button" id="themeBtn"><span>🎨</span>Theme</button>
+    <button type="button" id="arcadeBtn"><span>🕹️</span>Games</button>
   </nav>
 
   <div class="pages hidden" id="pages">
@@ -2235,6 +2279,141 @@ function confetti() {
     el.style.cssText = `left:${Math.random() * 100}vw;background:${colours[i % colours.length]};--t:${t.toFixed(2)}s;--d:${d.toFixed(2)}s;--x:${(Math.random() * 120 - 60).toFixed(0)}px;--r:${(Math.random() * 900 - 450).toFixed(0)}deg;${i % 3 === 0 ? 'border-radius:50%;width:10px;height:10px;' : ''}`;
     document.body.appendChild(el); setTimeout(() => el.remove(), (t + d) * 1000 + 100);
   }
+}
+
+/* ---------- games corner: snake and memory match ---------- */
+let arcStop = null;   // stops whatever game is running
+function arcOpen(title, score) { $('arcTitle').textContent = title; $('arcScore').textContent = score || ''; $('arcade').classList.remove('hidden'); }
+function arcClose() { if (arcStop) { arcStop(); arcStop = null; } $('arcade').classList.add('hidden'); $('arcBody').innerHTML = ''; }
+function arcMenu() {
+  if (arcStop) { arcStop(); arcStop = null; }
+  arcOpen('🕹️ Games');
+  $('arcBody').innerHTML = `<div class="arcMenu">
+    <button type="button" data-arc="snake"><i>🐍</i><span>Snake<small>Eat the apples, grow longer, don't bump into anything. Best: ${store.get('snakeBest', 0)}</small></span></button>
+    <button type="button" data-arc="memory"><i>🃏</i><span>Memory match<small>Turn over two cards at a time and find all the pairs.</small></span></button>
+  </div><div class="arcNote">Want to play with someone? Open a chat and tap 🎮.</div>`;
+  $('arcBody').querySelectorAll('[data-arc]').forEach(b => b.onclick = () => (b.dataset.arc === 'snake' ? snakeGame : memoryGame)());
+}
+$('arcadeBtn').onclick = () => { if (me && !call && !gcall) arcMenu(); };
+$('arcBack').onclick = () => { if ($('arcTitle').textContent === '🕹️ Games') arcClose(); else arcMenu(); };
+const themeAcc = () => (getComputedStyle(document.body).getPropertyValue('--t-acc-text') || '').trim() || '#25d366';
+
+function snakeGame() {
+  const N = 17, side = Math.min(window.innerWidth - 32, 380, window.innerHeight - 300), cell = Math.floor(side / N), W = cell * N;
+  arcOpen('🐍 Snake', '0');
+  $('arcBody').innerHTML = `<div class="snakeBox"><canvas id="snk" width="${W * 2}" height="${W * 2}" style="width:${W}px;height:${W}px"></canvas><div class="snakeOver" id="snkOver"></div></div>
+    <div class="dpad" id="dpad"><button type="button" class="u" data-d="0,-1">⬆️</button><button type="button" class="l" data-d="-1,0">⬅️</button><button type="button" class="d" data-d="0,1">⬇️</button><button type="button" class="r" data-d="1,0">➡️</button></div>
+    <div class="arcNote">Swipe on the board, use the arrows, or the keyboard.</div>`;
+  const cv = $('snk'), g = cv.getContext('2d'), over = $('snkOver'), col = themeAcc();
+  g.scale(2, 2);
+  let snake, dir, queue, food, score, speed, timer = 0, alive = false;
+  const best = () => store.get('snakeBest', 0);
+  function place() { do { food = [Math.floor(Math.random() * N), Math.floor(Math.random() * N)]; } while (snake.some(p => p[0] === food[0] && p[1] === food[1])); }
+  function draw() {
+    g.clearRect(0, 0, W, W);
+    g.font = `${cell * 0.9}px serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText('🍎', food[0] * cell + cell / 2, food[1] * cell + cell / 2 + 1);
+    snake.forEach((p, i) => {
+      g.fillStyle = col; g.globalAlpha = i === 0 ? 1 : i % 2 ? 0.8 : 0.65;
+      const r = cell * 0.3, x = p[0] * cell + 1, y = p[1] * cell + 1, s2 = cell - 2;
+      g.beginPath(); g.roundRect ? g.roundRect(x, y, s2, s2, r) : g.rect(x, y, s2, s2); g.fill();
+    });
+    g.globalAlpha = 1;
+    const h = snake[0], ex = h[0] * cell + cell / 2, ey = h[1] * cell + cell / 2;   // eyes look the way it is going
+    g.fillStyle = '#fff'; [[-1, 1], [1, 1]].forEach(([a]) => { g.beginPath(); g.arc(ex + (dir[1] ? a * cell * 0.18 : dir[0] * cell * 0.15), ey + (dir[0] ? a * cell * 0.18 : dir[1] * cell * 0.15), cell * 0.12, 0, 7); g.fill(); });
+  }
+  function start() {
+    snake = [[8, 8], [7, 8], [6, 8]]; dir = [1, 0]; queue = []; score = 0; speed = 150; alive = true;
+    place(); over.style.display = 'none'; $('arcScore').textContent = '0'; draw();
+    clearTimeout(timer); timer = setTimeout(step, 400);
+  }
+  function step() {
+    if (!alive) return;
+    if (queue.length) dir = queue.shift();
+    const h = [snake[0][0] + dir[0], snake[0][1] + dir[1]];
+    const ate = h[0] === food[0] && h[1] === food[1];
+    const body = ate ? snake : snake.slice(0, -1);
+    if (h[0] < 0 || h[1] < 0 || h[0] >= N || h[1] >= N || body.some(p => p[0] === h[0] && p[1] === h[1])) return end();
+    snake.unshift(h);
+    if (ate) { score++; $('arcScore').textContent = String(score); speed = Math.max(70, speed - 4); beep([880, 1175], 0.06, 0.05); if (snake.length >= N * N) return end(); place(); }
+    else snake.pop();
+    draw(); timer = setTimeout(step, speed);
+  }
+  function end() {
+    alive = false; clearTimeout(timer); endTone();
+    const newBest = score > best(); if (newBest) { store.set('snakeBest', score); if (score) confetti(); }
+    over.innerHTML = `<div>${newBest && score ? '🏆 New best!' : 'Game over'}</div><div>Score ${score} · Best ${best()}</div><button type="button" class="arcBtn" id="snkAgain">🔁 Play again</button>`;
+    over.style.display = 'flex'; $('snkAgain').onclick = start;
+  }
+  function turn(d) {
+    if (!alive) return;
+    const last = queue.length ? queue[queue.length - 1] : dir;
+    if ((d[0] && d[0] === -last[0]) || (d[1] && d[1] === -last[1]) || (d[0] === last[0] && d[1] === last[1])) return;   // no turning back on itself
+    if (queue.length < 3) queue.push(d);
+  }
+  $('dpad').onclick = e => { const b = e.target.closest('[data-d]'); if (b) turn(b.dataset.d.split(',').map(Number)); };
+  let sx = 0, sy = 0;
+  cv.onpointerdown = e => { sx = e.clientX; sy = e.clientY; };
+  cv.onpointerup = e => {
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return;
+    turn(Math.abs(dx) > Math.abs(dy) ? [Math.sign(dx), 0] : [0, Math.sign(dy)]);
+  };
+  const keys = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], w: [0, -1], s: [0, 1], a: [-1, 0], d: [1, 0] };
+  const onKey = e => { const d = keys[e.key]; if (d) { e.preventDefault(); turn(d); } };
+  const onHide = () => { if (document.hidden && alive) end(); };
+  document.addEventListener('keydown', onKey); document.addEventListener('visibilitychange', onHide);
+  arcStop = () => { alive = false; clearTimeout(timer); document.removeEventListener('keydown', onKey); document.removeEventListener('visibilitychange', onHide); };
+  start();
+}
+
+const MEM_EMOJI = ['🐶', '🐱', '🦊', '🐼', '🐸', '🐵', '🦄', '🐙', '🍕', '🍩', '🚀', '⚽', '🌈', '🎈', '🦖', '🐢', '🍉', '⭐'];
+function memoryGame(size) {
+  size = size || store.get('memSize', 16);
+  if (![12, 16, 20].includes(size)) size = 16;
+  store.set('memSize', size);
+  const cols = 4, pairs = size / 2;
+  const pool = MEM_EMOJI.slice().sort(() => Math.random() - 0.5).slice(0, pairs);
+  const deck = pool.concat(pool).map((e, i) => ({ e, k: i })).sort(() => Math.random() - 0.5);
+  let open = [], moves = 0, found = 0, busy = false, t0 = 0, tick = 0;
+  const bestKey = 'memBest' + size, best = () => store.get(bestKey, 0);
+  arcOpen('🃏 Memory match', '');
+  $('arcBody').innerHTML = `<div class="memSize" id="memSize">${[[12, 'Easy'], [16, 'Medium'], [20, 'Hard']].map(([n, t]) => `<button type="button" data-n="${n}" class="${n === size ? 'on' : ''}">${t}</button>`).join('')}</div>
+    <div class="arcNote" id="memNote">Find all ${pairs} pairs${best() ? ` · best: ${best()} moves` : ''}</div>
+    <div class="memGrid" id="memGrid" style="grid-template-columns:repeat(${cols},1fr);max-width:${size === 20 ? 320 : 360}px">${deck.map((c, i) => `<button type="button" class="mcard" data-i="${i}" aria-label="card"><span class="in"><span class="b">?</span><span class="f">${c.e}</span></span></button>`).join('')}</div>`;
+  const cards = [...$('memGrid').children], score = () => { $('arcScore').textContent = `${moves} moves`; };
+  $('memSize').onclick = e => { const b = e.target.closest('[data-n]'); if (b) { arcStop && arcStop(); memoryGame(+b.dataset.n); } };
+  $('memGrid').onclick = e => {
+    const b = e.target.closest('.mcard'); if (!b || busy) return;
+    const i = +b.dataset.i;
+    if (b.classList.contains('up') || b.classList.contains('done')) return;
+    if (!t0) { t0 = Date.now(); tick = setInterval(() => { $('memNote').textContent = `${found} of ${pairs} pairs · ${Math.round((Date.now() - t0) / 1000)}s`; }, 1000); }
+    b.classList.add('up'); open.push(i); blip();
+    if (open.length < 2) return;
+    moves++; score();
+    const [a, c] = open; open = [];
+    if (deck[a].e === deck[c].e) {
+      found++; beep([880, 1320], 0.08, 0.05);
+      setTimeout(() => { cards[a].classList.add('done'); cards[c].classList.add('done'); }, 250);
+      if (found === pairs) {
+        clearInterval(tick);
+        const secs = Math.round((Date.now() - t0) / 1000), newBest = !best() || moves < best();
+        if (newBest) store.set(bestKey, moves);
+        setTimeout(() => {
+          confetti();
+          $('memNote').innerHTML = `${newBest ? '🏆 New best! ' : '🎉 '}All pairs in ${moves} moves and ${secs}s · best ${best()}`;
+          $('memGrid').insertAdjacentHTML('afterend', '<button type="button" class="arcBtn" id="memAgain">🔁 Play again</button>');
+          $('memAgain').onclick = () => memoryGame(size);
+        }, 450);
+      }
+    } else {
+      busy = true;
+      setTimeout(() => { cards[a].classList.add('shake'); cards[c].classList.add('shake'); }, 450);
+      setTimeout(() => { [a, c].forEach(j => cards[j].classList.remove('up', 'shake')); busy = false; }, 900);
+    }
+  };
+  score();
+  arcStop = () => clearInterval(tick);
 }
 
 /* ---------- settings ---------- */
