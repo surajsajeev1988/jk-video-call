@@ -365,7 +365,7 @@ h2{margin:12px 6px 6px;color:#00a884;letter-spacing:.6px;font-size:12.5px}
 .people .pickme b{font-size:17px}
 .addme .av{display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.07);border:2px dashed var(--edge,rgba(255,255,255,.35));box-shadow:none}
 .addme .av span{font-size:46px;line-height:1;font-weight:300;opacity:.75}
-.avpick{display:flex;gap:10px;justify-content:center;margin:2px 0 4px}
+.avpick{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:2px 0 4px}
 .avpick button{width:62px;height:62px;border-radius:50%;overflow:hidden;padding:0;opacity:.45;border:3px solid transparent;transition:.15s}
 .avpick button.on{opacity:1;border-color:#00a884;transform:scale(1.06)}
 .avpick svg{width:100%;height:100%;display:block}
@@ -1103,7 +1103,7 @@ const BASE_PEOPLE = [
   { num: '1988', name: 'Suraj', av: 'man' },
   { num: '1989', name: 'Tulasi', av: 'woman' }
 ];
-const AV_KINDS = ['boy', 'girl', 'man', 'woman'];
+const AV_KINDS = ['boy', 'girl', 'man', 'woman', 'grandpa', 'grandma'];
 // everyone who can sign in: the four built-in accounts plus any added later (kept on the server)
 let PEOPLE = BASE_PEOPLE.concat((gstore.get('extra', []) || []).filter(p => p && /^\d{4}$/.test(p.num) && !BASE_PEOPLE.some(b => b.num === p.num)));
 /* simple drawn faces: boy, girl, man, woman */
@@ -1114,10 +1114,20 @@ function avatar(kind) {
   const smile = y => `<path d="M41 ${y} Q50 ${y + 8} 59 ${y}" fill="none" stroke="#a8553a" stroke-width="2.5" stroke-linecap="round"/>`;
   const body = c => `<path d="M16 100 Q16 78 50 78 Q84 78 84 100Z" fill="${c}"/>`;
   const bg = c => `<rect width="100" height="100" fill="${c}"/>`;
+  const grey = '#d5d5d5';
+  const glasses = y => `<g fill="rgba(255,255,255,.25)" stroke="#5d4037" stroke-width="2"><circle cx="41" cy="${y}" r="7"/><circle cx="59" cy="${y}" r="7"/></g><path d="M48 ${y} h4" stroke="#5d4037" stroke-width="2"/>`;
   let s;
   if (kind === 'boy') s = bg('#4fc3f7') + body('#ff7043') + face(23) + `<path d="M27 49 Q25 26 50 26 Q75 26 73 49 Q66 37 50 38 Q34 37 27 49Z" fill="${hair}"/>` + eyes(55, 3.4) + smile(62);
   else if (kind === 'girl') s = bg('#f8a5c2') + body('#7e57c2') + `<circle cx="21" cy="52" r="10" fill="${hair}"/><circle cx="79" cy="52" r="10" fill="${hair}"/>` + face(23) + `<path d="M27 51 Q24 26 50 26 Q76 26 73 51 Q64 39 50 39 Q36 39 27 51Z" fill="${hair}"/><path d="M64 28l9-7v14z M64 28l-9-7v14z" fill="#ff4081"/>` + eyes(56, 3.4) + smile(63);
   else if (kind === 'man') s = bg('#4db6ac') + body('#37474f') + face(26) + `<path d="M24 47 Q21 22 50 22 Q79 22 76 47 Q70 33 50 34 Q30 33 24 47Z" fill="${hair}"/>` + eyes(52, 3) + `<path d="M39 64 Q50 58 61 64 Q50 68 39 64Z" fill="${hair}"/>` + smile(68);
+  else if (kind === 'grandpa') s = bg('#ffb74d') + body('#795548') + `<path d="M40 78 L50 92 L60 78Z" fill="#efebe9"/>` + face(26)
+    + `<path d="M24 58 Q21 40 31 33 Q28 46 31 58Z M76 58 Q79 40 69 33 Q72 46 69 58Z" fill="${grey}"/>`
+    + `<path d="M40 33 Q50 30 60 33 M42 38 Q50 35.5 58 38" fill="none" stroke="#d9a47e" stroke-width="1.6" stroke-linecap="round"/>`
+    + glasses(52) + eyes(52, 2.6) + `<path d="M37 64 Q50 56 63 64 Q50 70 37 64Z" fill="${grey}"/>` + smile(69);
+  else if (kind === 'grandma') s = bg('#a5d6a7') + `<circle cx="50" cy="23" r="12" fill="${grey}"/>` + body('#8e24aa')
+    + `<path d="M16 100 Q20 82 50 86 Q80 82 84 100Z" fill="#ba68c8"/>` + face(25)
+    + `<path d="M25 53 Q22 27 50 27 Q78 27 75 53 Q69 36 50 37 Q31 36 25 53Z" fill="${grey}"/>`
+    + glasses(53) + eyes(53, 2.6) + `<circle cx="36" cy="62" r="4" fill="#f48fb1" opacity=".5"/><circle cx="64" cy="62" r="4" fill="#f48fb1" opacity=".5"/>` + smile(63);
   else s = bg('#ce93d8') + `<path d="M19 94 Q12 24 50 21 Q88 24 81 94Z" fill="${hair}"/>` + body('#ec407a') + face(25) + `<path d="M25 51 Q23 28 50 28 Q77 28 75 51 Q67 35 47 37 Q34 39 25 51Z" fill="${hair}"/><circle cx="50" cy="41" r="1.9" fill="#d32f2f"/>` + eyes(53, 3) + smile(63);
   return `<svg viewBox="0 0 100 100" aria-hidden="true">${s}</svg>`;
 }
