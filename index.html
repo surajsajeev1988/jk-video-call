@@ -856,6 +856,22 @@ body.tv-matrix{--ink:#c8ffd4;--dim:#5fd47a;--faint:#3a8a4c;--edge:rgba(0,255,90,
 .game .big small{font-size:14px;font-weight:700;opacity:.75}
 .game .again{margin-top:8px;padding:8px 14px;border-radius:999px;background:rgba(127,127,127,.25);font-weight:700;font-size:13.5px;color:inherit}
 .gamepick{display:flex;flex-direction:column;gap:10px}
+.hgWord{display:flex;gap:4px;flex-wrap:wrap;margin:4px 0}
+.hgWord span{width:20px;height:28px;border-bottom:2.5px solid currentColor;display:grid;place-items:center;font-weight:900;font-size:18px}
+.hgWord span.got{color:#2e7d32}
+.hgLives{font-size:18px;letter-spacing:1px;margin:2px 0}
+.hgKeys{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:6px}
+.hgKeys button{height:32px;border-radius:8px;background:rgba(127,127,127,.22);font-weight:800;font-size:14px;color:inherit}
+.hgKeys button.yes{background:#43a047;color:#fff}.hgKeys button.no{opacity:.3}
+.four{display:grid;grid-template-columns:repeat(7,32px);gap:3px;padding:5px;border-radius:12px;background:#1565c0;margin:4px 0}
+.four button{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.9);font-size:22px;line-height:1;padding:0}
+.four button.win{box-shadow:0 0 0 3px #ffd600}
+.four button:not(:disabled):active{transform:scale(.9)}
+.math{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:360px}
+.mathQ{font-size:44px;font-weight:900;font-variant-numeric:tabular-nums}
+.mathA{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.mathA button{height:64px;border-radius:16px;background:rgba(127,127,127,.2);font-size:28px;font-weight:800}
+.mathA button.right{background:#43a047;color:#fff}.mathA button.wrong{background:#e53935;color:#fff}
 .toptabs button{min-width:0;white-space:nowrap}
 @media (max-width:380px){.toptabs button{font-size:12.5px;gap:4px}.toptabs button span{font-size:14px}}
 /* the games corner: a full screen of its own */
@@ -2360,10 +2376,11 @@ function arcMenu() {
     <button type="button" data-arc="merge"><i>🔢</i><span>Merge Up<small>Slide the tiles; two the same join into one double. Best: ${store.get('mergeBest', 0)}</small></span></button>
     <button type="button" data-arc="bop"><i>🐞</i><span>Bug Bop<small>Tap the bugs before they hide, but not the bees! Best: ${store.get('bopBest', 0)}</small></span></button>
     <button type="button" data-arc="copy"><i>🎵</i><span>Copy Me<small>Watch the pads light up, then copy the pattern. Best: level ${store.get('copyBest', 0)}</small></span></button>
+    <button type="button" data-arc="math"><i>➕</i><span>Maths Sprint<small>Answer as many sums as you can in 60 seconds. Best: ${store.get('mathBest', 0)}</small></span></button>
     <button type="button" data-arc="word"><i>🔤</i><span>Word Guess<small>Guess the word one letter at a time. Words guessed: ${store.get('wordWins', 0)}</small></span></button>
     <button type="button" data-arc="trophy"><i>🏆</i><span>Trophies<small>${trophiesEarned().length} of ${TROPHIES.length} won</small></span></button>
   </div><div class="arcNote">Want to play with someone? Open a chat and tap 🎮.</div>`;
-  const GAMES_ARC = { snake: snakeGame, memory: memoryGame, brick: brickGame, merge: mergeGame, bop: bopGame, copy: copyGame, word: wordGame, trophy: trophyShelf };
+  const GAMES_ARC = { snake: snakeGame, memory: memoryGame, brick: brickGame, merge: mergeGame, bop: bopGame, copy: copyGame, word: wordGame, math: mathGame, trophy: trophyShelf };
   $('arcBody').querySelectorAll('[data-arc]').forEach(b => b.onclick = () => GAMES_ARC[b.dataset.arc]());
 }
 $('arcadeBtn').onclick = () => { if (me && !call && !gcall) arcMenu(); };
@@ -2793,7 +2810,10 @@ const TROPHIES = [
   ['copy10', '🎼', 'Super listener', 'Reach level 10 in Copy Me', () => store.get('copyBest', 0) >= 10],
   ['word3', '🔤', 'Word wizard', 'Guess 3 words in Word Guess', () => store.get('wordWins', 0) >= 3],
   ['doodle', '🎨', 'Artist', 'Send a doodle', () => store.get('doodles', 0) >= 1],
-  ['ttt', '❌', 'Tic-tac-champ', 'Win tic-tac-toe in a chat', () => store.get('tttWins', 0) >= 1]
+  ['ttt', '❌', 'Tic-tac-champ', 'Win tic-tac-toe in a chat', () => store.get('tttWins', 0) >= 1],
+  ['four', '🔴', 'Four star', 'Win four in a row in a chat', () => store.get('fourWins', 0) >= 1],
+  ['hang', '🎈', 'Mind reader', "Guess someone's secret word", () => store.get('hangWins', 0) >= 1],
+  ['math20', '➕', 'Number ninja', 'Score 20 in Maths Sprint', () => store.get('mathBest', 0) >= 20]
 ];
 const trophiesEarned = () => TROPHIES.filter(t => { try { return t[4](); } catch (e) { return false; } }).map(t => t[0]);
 function trophyCheck() {
@@ -2847,6 +2867,51 @@ function wordGame() {
   document.addEventListener('keydown', onKey);
   arcStop = () => document.removeEventListener('keydown', onKey);
   draw();
+}
+
+/* Maths Sprint: as many sums as possible in 60 seconds; they get harder as the score grows */
+function mathGame() {
+  arcOpen('➕ Maths Sprint', '0');
+  $('arcBody').innerHTML = `<div class="math"><div class="arcNote" id="mtNote">60 seconds. Ready?</div><div class="mathQ" id="mtQ">?</div>
+    <div class="mathA" id="mtA"></div><button type="button" class="arcBtn" id="mtGo">▶️ Start</button></div>`;
+  let score = 0, t0 = 0, clock = 0, answer = 0, live = false, wait = 0;
+  const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  function ask() {
+    const lv = Math.min(4, Math.floor(score / 5));
+    const ops = lv < 1 ? ['+'] : lv < 2 ? ['+', '-'] : ['+', '-', '×'];
+    const op = ops[rnd(0, ops.length - 1)];
+    let a, b;
+    if (op === '×') { a = rnd(2, lv > 3 ? 12 : 9); b = rnd(2, lv > 3 ? 12 : 9); answer = a * b; }
+    else { const top = [10, 20, 30, 50, 100][lv]; a = rnd(1, top); b = rnd(1, top); if (op === '-' && b > a) [a, b] = [b, a]; answer = op === '+' ? a + b : a - b; }
+    $('mtQ').textContent = `${a} ${op} ${b}`;
+    const opts = new Set([answer]);
+    while (opts.size < 4) { const d = answer + rnd(-10, 10); if (d >= 0 && d !== answer) opts.add(d); }
+    $('mtA').innerHTML = [...opts].sort(() => Math.random() - 0.5).map(v => `<button type="button" data-v="${v}">${v}</button>`).join('');
+  }
+  function start() {
+    score = 0; live = true; t0 = Date.now(); $('arcScore').textContent = '0'; $('mtGo').classList.add('hidden'); ask();
+    clearInterval(clock);
+    clock = setInterval(() => { const left = Math.max(0, 60 - Math.floor((Date.now() - t0) / 1000)); $('mtNote').textContent = `⏱️ ${left}s left`; if (left <= 0) end(); }, 250);
+  }
+  function end() {
+    live = false; clearInterval(clock); clearTimeout(wait); endTone();
+    const r = bestCheck('mathBest', score);
+    $('mtQ').textContent = r.better ? '🏆' : '⏱️'; $('mtA').innerHTML = '';
+    $('mtNote').textContent = `${r.better ? 'New best! ' : "Time's up! "}${score} right · Best ${r.best}`;
+    $('mtGo').textContent = '🔁 Play again'; $('mtGo').classList.remove('hidden');
+  }
+  $('mtA').onclick = e => {
+    const b = e.target.closest('[data-v]'); if (!b || !live || wait) return;
+    const ok = +b.dataset.v === answer;
+    b.classList.add(ok ? 'right' : 'wrong');
+    if (ok) { score++; $('arcScore').textContent = String(score); beep([880], 0.05, 0.05); }
+    else { beep([196], 0.12, 0.05); const r = $('mtA').querySelector(`[data-v="${answer}"]`); if (r) r.classList.add('right'); }
+    wait = setTimeout(() => { wait = 0; if (live) ask(); }, ok ? 250 : 700);
+  };
+  $('mtGo').onclick = start;
+  const onHide = () => { if (document.hidden && live) end(); };
+  document.addEventListener('visibilitychange', onHide);
+  arcStop = () => { live = false; clearInterval(clock); clearTimeout(wait); document.removeEventListener('visibilitychange', onHide); };
 }
 
 /* ---------- settings ---------- */
@@ -3291,7 +3356,11 @@ window.addEventListener('beforeunload', () => { if (call) send({ t: 'end' }); })
 // So moves travel every way messages do (straight to the other phone, or through the online inbox),
 // and a chat shows each game once, as a board, at the place of its newest move.
 const GMARK = '\n§GAME§';
-const GAMES = { ttt: '❌⭕ Tic-tac-toe', rps: '✊✋✌️ Rock paper scissors' };
+const GAMES = { ttt: '❌⭕ Tic-tac-toe', rps: '✊✋✌️ Rock paper scissors', hang: '🎈 Hangman', four: '🔴🟡 Four in a row' };
+// hangman's secret word is stored back to front and encoded, so it isn't readable at a glance in the chat data
+const hangEnc = w => btoa([...w].reverse().join(''));
+const hangDec = e => { try { const w = [...atob(e)].reverse().join(''); return /^[A-Z]{3,12}$/.test(w) ? w : null; } catch (x) { return null; } };
+const HANG_LIVES = 6;
 const RPS = Object.assign(Object.create(null), { r: '✊', p: '✋', s: '✌️' }), BEATS = { r: 's', p: 'r', s: 'p' };
 // only well-formed games are used; anything else stays an ordinary message
 const isNum = v => typeof v === 'string' && /^\d{4}$/.test(v);
@@ -3306,8 +3375,26 @@ function gameOf(text) {
     [g.a, g.b].forEach(n => { if (Object.prototype.hasOwnProperty.call(g.p, n) && RPS[g.p[n]]) p[n] = g.p[n]; });
     return { g: g.g, k: 'rps', a: g.a, b: g.b, p };
   }
+  if (g.k === 'hang') {
+    if (!isNum(g.s) || !isNum(g.p) || typeof g.w !== 'string' || !hangDec(g.w) || typeof g.t !== 'string' || !/^[A-Z]{0,26}$/.test(g.t)) return null;
+    return { g: g.g, k: 'hang', s: g.s, p: g.p, w: g.w, t: g.t };
+  }
+  if (g.k === 'four') return typeof g.b === 'string' && /^[.ry]{42}$/.test(g.b) && isNum(g.r) && isNum(g.y) && isNum(g.n) ? { g: g.g, k: 'four', b: g.b, r: g.r, y: g.y, n: g.n } : null;
   return null;
 }
+// four in a row: 6 rows of 7, row 0 at the top
+function fourWinner(b) {
+  const at = (r, c) => (r >= 0 && r < 6 && c >= 0 && c < 7 ? b[r * 7 + c] : '');
+  for (let r = 0; r < 6; r++) for (let c = 0; c < 7; c++) {
+    const v = at(r, c); if (v === '.') continue;
+    for (const [dr, dc] of [[0, 1], [1, 0], [1, 1], [1, -1]]) {
+      const cells = [0, 1, 2, 3].map(k => [r + dr * k, c + dc * k]);
+      if (cells.every(([rr, cc]) => at(rr, cc) === v)) return { who: v, cells: cells.map(([rr, cc]) => rr * 7 + cc) };
+    }
+  }
+  return b.includes('.') ? null : { who: 'd', cells: [] };
+}
+const hangState = g => { const w = hangDec(g.w), misses = [...g.t].filter(c => !w.includes(c)).length, won = [...w].every(c => g.t.includes(c)); return { w, misses, won, lost: !won && misses >= HANG_LIVES }; };
 const gameLabel = g => '🎮 ' + GAMES[g.k].replace(/^\S+ /, '');
 const TTT_LINES = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
 function tttWinner(b) {
@@ -3319,6 +3406,20 @@ function newGame(kind) {
   const num = threadNum; if (!num) return;
   const id = me.num + Date.now().toString(36);
   if (kind === 'ttt') sendGame(num, { g: id, k: 'ttt', b: '.........', x: me.num, o: num, n: me.num }, "🎮 Let's play tic-tac-toe!");
+  else if (kind === 'four') sendGame(num, { g: id, k: 'four', b: '.'.repeat(42), r: me.num, y: num, n: me.num }, "🎮 Let's play four in a row!");
+  else if (kind === 'hang') {
+    modal(`<h3>🎈 Hangman</h3><div class="note">Type a secret word for ${esc(chatName(num))} to guess: 3 to 12 letters, no spaces.</div>
+      <input class="field" id="hgWord" maxlength="12" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase;letter-spacing:3px;text-align:center;font-size:20px">
+      <div class="pinmsg" id="hgMsg"></div><div class="row"><button class="gloss g-glass" id="hgNo">Cancel</button><button class="gloss g-green" id="hgGo">Send</button></div>`);
+    const go = () => {
+      const w = $('hgWord').value.trim().toUpperCase();
+      if (!/^[A-Z]{3,12}$/.test(w)) { $('hgMsg').textContent = 'Use 3 to 12 letters (A to Z only)'; return; }
+      closeModal(); sendGame(num, { g: id, k: 'hang', s: me.num, p: num, w: hangEnc(w), t: '' }, '🎮 I picked a secret word. Guess it in Hangman!');
+    };
+    $('hgNo').onclick = closeModal; $('hgGo').onclick = go;
+    $('hgWord').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); go(); } };
+    setTimeout(() => $('hgWord') && $('hgWord').focus(), 60);
+  }
   else sendGame(num, { g: id, k: 'rps', a: me.num, b: num, p: {} }, "🎮 Let's play rock paper scissors!");
 }
 // all the moves of each game in a chat, merged: the board with the most moves, or everyone's picks
@@ -3331,13 +3432,27 @@ function gamesIn(msgs) {
     cur.at = i;
     if (g.k === 'ttt' && (g.b.match(/[xo]/g) || []).length > (cur.g.b.match(/[xo]/g) || []).length) cur.g = g;
     if (g.k === 'rps') cur.g = Object.assign({}, cur.g, { p: Object.assign({}, cur.g.p, g.p) });
+    if (g.k === 'four' && (g.b.match(/[ry]/g) || []).length > (cur.g.b.match(/[ry]/g) || []).length) cur.g = g;
+    if (g.k === 'hang') cur.g = Object.assign({}, cur.g, { t: [...new Set([...cur.g.t, ...g.t])].sort().join('') });   // every guess counts, whatever order they arrive in
   });
   return out;
 }
 function gameHtml(g, mine, t) {
-  const other = g.k === 'ttt' ? (g.x === me.num ? g.o : g.x) : (g.a === me.num ? g.b : g.a), them = esc(chatName(other));
+  const other = g.k === 'ttt' ? (g.x === me.num ? g.o : g.x) : g.k === 'four' ? (g.r === me.num ? g.y : g.r) : g.k === 'hang' ? (g.s === me.num ? g.p : g.s) : (g.a === me.num ? g.b : g.a), them = esc(chatName(other));
   let body = '', st = '', done = false;
-  if (g.k === 'ttt') {
+  if (g.k === 'hang') {
+    const h = hangState(g), guesser = g.p === me.num;
+    done = h.won || h.lost;
+    body = `<div class="hgWord">${[...h.w].map(c => `<span class="${g.t.includes(c) ? 'got' : ''}">${g.t.includes(c) || done || !guesser ? c : ''}</span>`).join('')}</div>`
+      + `<div class="hgLives">${'🎈'.repeat(HANG_LIVES - h.misses)}${'💥'.repeat(h.misses)}</div>`;
+    if (guesser && !done) body += `<div class="hgKeys">${[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(c => `<button type="button" data-hang="${esc(g.g)}" data-l="${c}" class="${g.t.includes(c) ? (h.w.includes(c) ? 'yes' : 'no') : ''}" ${g.t.includes(c) ? 'disabled' : ''}>${c}</button>`).join('')}</div>`;
+    st = h.won ? (guesser ? 'You got it! 🏆' : `${them} guessed it! 🎉`) : h.lost ? (guesser ? `Out of balloons! It was ${h.w}.` : `${them} ran out of balloons. You win! 🏆`) : guesser ? 'Tap letters to guess the word' : `Your word: ${h.w}. Waiting for ${them} to guess…`;
+  } else if (g.k === 'four') {
+    const meC = g.r === me.num ? 'r' : 'y', w = fourWinner(g.b), myTurn = !w && g.n === me.num;
+    body = '<div class="four">' + [...g.b].map((c, i) => `<button type="button" data-four="${esc(g.g)}" data-col="${i % 7}" class="${w && w.cells.includes(i) ? 'win' : ''}" ${myTurn && g.b[i % 7] === '.' ? '' : 'disabled'}>${c === 'r' ? '🔴' : c === 'y' ? '🟡' : ''}</button>`).join('') + '</div>';
+    done = !!w;
+    st = !w ? (myTurn ? `Your turn: tap a column (you are ${meC === 'r' ? '🔴' : '🟡'})` : `Waiting for ${them}…`) : w.who === 'd' ? "It's a draw! 🤝" : w.who === meC ? 'You won! 🏆' : `${them} won! 🎉`;
+  } else if (g.k === 'ttt') {
     const meMark = g.x === me.num ? 'x' : 'o', w = tttWinner(g.b), myTurn = !w && g.n === me.num;
     body = '<div class="ttt">' + [...g.b].map((c, i) => `<button type="button" data-ttt="${esc(g.g)}" data-cell="${i}" class="${w && w.line.includes(i) ? 'win' : ''}" ${myTurn && c === '.' ? '' : 'disabled'}>${c === 'x' ? '❌' : c === 'o' ? '⭕' : ''}</button>`).join('') + '</div>';
     done = !!w;
@@ -3369,6 +3484,26 @@ function wireGames(box, games) {
     const cur = games[b.dataset.rps]; if (!cur || cur.g.p[me.num]) return;
     const g = Object.assign({}, cur.g, { p: Object.assign({}, cur.g.p, { [me.num]: b.dataset.pick }) });
     sendGame(threadNum, g, '🎮 Rock paper scissors: I picked!');
+  });
+  box.querySelectorAll('[data-hang]').forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const cur = games[b.dataset.hang]; if (!cur) return;
+    const g = cur.g, c = b.dataset.l, h = hangState(g);
+    if (g.p !== me.num || g.t.includes(c) || h.won || h.lost) return;
+    const ng = Object.assign({}, g, { t: [...g.t, c].sort().join('') }), after = hangState(ng);
+    sendGame(threadNum, ng, after.won ? '🎮 Hangman: I guessed the word!' : after.lost ? '🎮 Hangman: out of balloons!' : `🎮 Hangman: I guessed ${c}`);
+    if (after.won) { confetti(); store.set('hangWins', store.get('hangWins', 0) + 1); trophyCheck(); }
+  });
+  box.querySelectorAll('[data-four]').forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const cur = games[b.dataset.four]; if (!cur) return;
+    const g = cur.g, col = +b.dataset.col, meC = g.r === me.num ? 'r' : 'y';
+    if (g.n !== me.num || fourWinner(g.b)) return;
+    let row = -1; for (let r = 5; r >= 0; r--) if (g.b[r * 7 + col] === '.') { row = r; break; }
+    if (row < 0) return;
+    const i = row * 7 + col, nb = g.b.slice(0, i) + meC + g.b.slice(i + 1), other = g.r === me.num ? g.y : g.r, w = fourWinner(nb);
+    sendGame(threadNum, Object.assign({}, g, { b: nb, n: other }), w ? (w.who === 'd' ? '🎮 Four in a row: a draw!' : '🎮 Four in a row: I won!') : '🎮 Four in a row: your turn!');
+    if (w && w.who === meC) { confetti(); store.set('fourWins', store.get('fourWins', 0) + 1); trophyCheck(); }
   });
   box.querySelectorAll('[data-again]').forEach(b => b.onclick = e => { e.stopPropagation(); newGame(b.dataset.again); });
 }
