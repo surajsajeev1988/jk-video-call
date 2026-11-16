@@ -841,6 +841,13 @@ body.tv-matrix{--ink:#c8ffd4;--dim:#5fd47a;--faint:#3a8a4c;--edge:rgba(0,255,90,
 @keyframes tapdot{from{transform:translate(0,0) scale(1);opacity:1}60%{opacity:1}to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
 @media (prefers-reduced-motion:reduce){.tapring,.tapdot{display:none}}
 .fxrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+/* confetti when a call connects */
+.confetti{position:fixed;top:-16px;width:9px;height:14px;pointer-events:none;z-index:10000;border-radius:2px;animation:confall var(--t) cubic-bezier(.25,.6,.4,1) var(--d) forwards}
+@keyframes confall{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(var(--x),110vh) rotate(var(--r));opacity:.9}}
+/* an emoji-only message does a little dance when it arrives */
+.bub.big.fresh{animation:emojidance 1s ease-in-out;transform-origin:50% 80%}
+@keyframes emojidance{0%{transform:scale(.3)}30%{transform:scale(1.35) rotate(-10deg)}50%{transform:scale(1.1) rotate(9deg)}70%{transform:scale(1.2) rotate(-6deg)}100%{transform:scale(1) rotate(0)}}
+@media (prefers-reduced-motion:reduce){.confetti{display:none}.bub.big.fresh{animation:none}}
 .thscheme{display:flex;gap:4px;padding:4px;border-radius:999px}
 .thscheme button{flex:1;padding:9px 4px;border-radius:999px;font-weight:600;font-size:14px}
 .thsurprise button{flex:1;padding:11px}
@@ -2153,6 +2160,18 @@ document.addEventListener('pointerdown', e => {
   tapBurst(e.clientX, e.clientY);
 }, { passive: true });
 
+// Confetti: a short shower of coloured paper from the top of the screen.
+function confetti() {
+  if (!fxOn() || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+  const colours = ['#ff6b6b', '#ffd166', '#06d6a0', '#4fc3f7', '#b388ff', '#ff8fc8', '#ffffff'];
+  for (let i = 0; i < 70; i++) {
+    const el = document.createElement('i'); el.className = 'confetti';
+    const t = 1.8 + Math.random() * 1.4, d = Math.random() * 0.5;
+    el.style.cssText = `left:${Math.random() * 100}vw;background:${colours[i % colours.length]};--t:${t.toFixed(2)}s;--d:${d.toFixed(2)}s;--x:${(Math.random() * 120 - 60).toFixed(0)}px;--r:${(Math.random() * 900 - 450).toFixed(0)}deg;${i % 3 === 0 ? 'border-radius:50%;width:10px;height:10px;' : ''}`;
+    document.body.appendChild(el); setTimeout(() => el.remove(), (t + d) * 1000 + 100);
+  }
+}
+
 /* ---------- settings ---------- */
 $('myNumBtn').onclick = () => {
   const txt = me.name + "'s JK Video Call number: " + me.num;
@@ -2165,7 +2184,7 @@ $('settingsBtn').onclick = () => {
     <div class="note" id="stCloud">${esc(cloudNote())}</div>
     <div class="note" style="margin-top:4px">Video quality (highest your camera and internet allow)</div>
     <div class="seg" id="stQual">${Object.keys(QUALITY).map(k => `<button data-q="${k}" class="${k === quality ? 'on' : ''}">${QUALITY[k].label}</button>`).join('')}</div>
-    <div class="fxrow"><div class="note">✨ Tap animations</div><div class="seg thscheme" id="stFx"><button type="button" data-fx="1" class="${fxOn() ? 'on' : ''}">On</button><button type="button" data-fx="0" class="${fxOn() ? '' : 'on'}">Off</button></div></div>
+    <div class="fxrow"><div class="note">✨ Animations (taps, confetti)</div><div class="seg thscheme" id="stFx"><button type="button" data-fx="1" class="${fxOn() ? 'on' : ''}">On</button><button type="button" data-fx="0" class="${fxOn() ? '' : 'on'}">Off</button></div></div>
     <button class="plain" id="stTest">🔔 Test ringtone and notification</button>
     <button class="plain" id="stMic">🎤 Check the microphone</button>
     <button class="plain" id="stSync">☁️ Save and check for messages now</button>
@@ -2526,7 +2545,7 @@ function goLive() {
   openCallUI('live'); showLocal(); updateRemoteView();
   if (call.mc) boostSender(call.mc.peerConnection);
   tick(); call.timer = setInterval(tick, 1000);
-  beep([660, 880], 0.15, 0.06);
+  beep([660, 880], 0.15, 0.06); confetti();
   try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(w => wake = w, () => {}); } catch (e) {}
 }
 function tick() {
@@ -2611,7 +2630,8 @@ function bubbleHtml(m, t, tick) {
       : '<div class="vn gone">🖼️ Photo · not on this device</div>';
     return `<div class="${cls} media" data-mid="${m.id}">${quoteHtml(m)}${body}${m.text ? '<span class="cap">' + esc(m.text) + '</span>' : ''}${foot}${rxHtml(m)}</div>`;
   }
-  return `<div class="${cls} ${onlyEmoji(m.text) && !m.re ? 'big' : ''}" data-mid="${m.id}">${quoteHtml(m)}${esc(m.text)}${foot}${rxHtml(m)}</div>`;
+  const big = onlyEmoji(m.text) && !m.re, fresh = big && Date.now() - (m.ts || 0) < 6000;   // a new emoji-only message dances once
+  return `<div class="${cls} ${big ? 'big' : ''}${fresh ? ' fresh' : ''}" data-mid="${m.id}">${quoteHtml(m)}${esc(m.text)}${foot}${rxHtml(m)}</div>`;
 }
 /* hold a message (or right-click it) for reactions, reply and delete */
 function wireBubbles(box) {
@@ -3059,7 +3079,7 @@ function gLive() {
   stopTone(); clearTimeout(gcall.noAnswer);
   gcall.t0 = Date.now();
   beep([660, 880], 0.15, 0.06);
-  gTick(); gcall.timer = setInterval(gTick, 1000);
+  gTick(); gcall.timer = setInterval(gTick, 1000); confetti();
   try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(w => gwake = w, () => {}); } catch (e) {}
 }
 function gTick() {
