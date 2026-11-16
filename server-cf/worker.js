@@ -6,7 +6,7 @@
 
 const USERS = { '2019': 'Krishna', '2017': 'Jagannath', '1988': 'Suraj', '1989': 'Tulasi' };
 const BASE_AV = { '2017': 'boy', '2019': 'girl', '1988': 'man', '1989': 'woman' };
-const AV_KINDS = ['boy', 'girl', 'man', 'woman', 'grandpa', 'grandma'];
+const AV_KINDS = ['boy', 'girl', 'man', 'woman', 'grandpa', 'grandma', 'cat', 'dog', 'robot', 'hero', 'princess', 'astronaut'];
 const MAX_EXTRA = 1000;      // added accounts: no real limit, only a guard against runaway sign-ups
 const MAX_STATE = 100000;    // characters of saved state per person
 const MAX_INBOX = 200;       // waiting messages per person
